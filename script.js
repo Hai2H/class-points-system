@@ -59,6 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
             studentPointsCheckboxContainer: document.getElementById('student-points-checkbox-container'),
             studentPointsAmount: document.getElementById('student-points-amount'),
             studentPointsReason: document.getElementById('student-points-reason'),
+
+
+            pasteImportModal: document.getElementById('paste-import-modal'),
+            pasteImportForm: document.getElementById('paste-import-form'),
+            pasteStudentNames: document.getElementById('paste-student-names'),
         },
 
 
@@ -269,6 +274,57 @@ document.addEventListener('DOMContentLoaded', () => {
             addTurntablePrize(name) { App.state.turntablePrizes.push({ id: App.actions.generateId(), text: name }); App.saveData(); return { success: true }; },
             updateTurntablePrize(id, name) { const prize = App.state.turntablePrizes.find(p => p.id === id); if (prize) { prize.text = name; App.saveData(); } return { success: true }; },
             deleteTurntablePrize(id) { App.state.turntablePrizes = App.state.turntablePrizes.filter(p => p.id !== id); App.saveData(); return { success: true }; },
+
+
+            addStudentsBatch(names) {
+                if (!names || names.length === 0) {
+                    return { success: false, message: '学生名单为空。', added: 0, skipped: 0 };
+                }
+
+                // --- 智能ID生成逻辑 ---
+                const existingIds = new Set(App.state.students.map(s => s.id));
+                let maxNum = 0;
+                let prefix = 'S'; // 默认前缀
+                App.state.students.forEach(s => {
+                    const match = s.id.match(/^([a-zA-Z]*)(\d+)$/);
+                    if (match) {
+                        prefix = match[1] || prefix;
+                        const num = parseInt(match[2], 10);
+                        if (num > maxNum) maxNum = num;
+                    }
+                });
+
+                const existingNames = new Set(App.state.students.map(s => s.name.trim()));
+                // 过滤掉粘贴内容中的空行和重复姓名
+                const uniqueNewNames = [...new Set(names.map(n => n.trim()).filter(Boolean))];
+
+                let addedCount = 0;
+                let skippedCount = 0;
+
+                uniqueNewNames.forEach(name => {
+                    if (existingNames.has(name)) {
+                        skippedCount++;
+                    } else {
+                        maxNum++;
+                        let newId = `${prefix}${maxNum}`;
+                        // 循环检查，确保新ID绝对不会重复
+                        while (existingIds.has(newId)) {
+                            maxNum++;
+                            newId = `${prefix}${maxNum}`;
+                        }
+                        // 直接修改 state，比调用 action 更高效
+                        App.state.students.push({ id: newId, name, group: '', points: 0, totalEarnedPoints: 0, totalDeductions: 0 });
+                        existingIds.add(newId);
+                        existingNames.add(name);
+                        addedCount++;
+                    }
+                });
+
+                // 所有学生添加完毕后，只保存一次数据
+                App.saveData();
+
+                return { success: true, added: addedCount, skipped: skippedCount };
+            },
         },
 
         // ... (render, saveData, loadData, import/export 函数保持不变)
@@ -416,6 +472,9 @@ document.addEventListener('DOMContentLoaded', () => {
             App.DOMElements.turntablePrizeTableBody.addEventListener('click', e => App.handlers.handleTurntablePrizeTableClick(e));
             App.DOMElements.btnPrintSummary.addEventListener('click', () => App.print.summary());
             App.DOMElements.btnPrintDetails.addEventListener('click', () => App.print.details());
+
+            document.getElementById('btn-paste-import-students').addEventListener('click', () => App.handlers.openPasteImportModal());
+            App.DOMElements.pasteImportForm.addEventListener('submit', e => App.handlers.handlePasteImportSubmit(e));
 
 
             document.getElementById('btn-add-student-points').addEventListener('click', () => App.handlers.openStudentPointsModal());
@@ -703,6 +762,32 @@ document.addEventListener('DOMContentLoaded', () => {
             //initTurntable() { if (!App.DOMElements.turntableCanvas) return; if (App.turntableInstance) { App.turntableInstance.stopAnimation(false); App.turntableInstance = null; } const prizes = App.state.turntablePrizes.length > 0 ? App.state.turntablePrizes : [{ text: '谢谢参与' }]; const colors = ["#8C236E", "#2C638C", "#3C8C4D", "#D99E3D", "#D9523D", "#8C2323", "#45238C", "#238C80"]; App.turntableInstance = new Winwheel({ 'canvasId': 'turntable-canvas', 'numSegments': prizes.length, 'responsive': true, 'segments': prizes.map((p, i) => ({ ...p, fillStyle: colors[i % colors.length], textFillStyle: '#ffffff' })), 'animation': { 'type': 'spinToStop', 'duration': 8, 'spins': 10, 'callbackFinished': App.handlers.spinFinished, } }); },
             handleSortClick: (e) => { const h = e.target.closest('th.sortable'); if (!h) return; const sKey = h.dataset.sort; const cSort = App.state.sortState; let nDir = 'asc'; if (cSort.column === sKey) { nDir = cSort.direction === 'asc' ? 'desc' : 'asc' } App.state.sortState = { column: sKey, direction: nDir }; App.render() },
             handleLeaderboardToggle: (e) => { const b = e.target.closest('.toggle-btn'); if (!b) return; const t = b.dataset.type; if (App.state.leaderboardType !== t) { App.state.leaderboardType = t; App.render(); } },
+
+
+            openPasteImportModal() {
+                App.DOMElements.pasteImportForm.reset();
+                App.ui.openModal(App.DOMElements.pasteImportModal);
+            },
+
+            handlePasteImportSubmit(e) {
+                e.preventDefault();
+                const namesText = App.DOMElements.pasteStudentNames.value;
+                const names = namesText.split(/\r?\n/); // 按换行符分割成数组
+
+                const result = App.actions.addStudentsBatch(names);
+
+                if (result.success) {
+                    let message = `导入完成！成功新增 ${result.added} 名学生。`;
+                    if (result.skipped > 0) {
+                        message += ` 跳过 ${result.skipped} 个已存在的同名学生。`;
+                    }
+                    App.ui.showNotification(message);
+                    App.ui.closeModal(App.DOMElements.pasteImportModal);
+                    App.render(); // 重新渲染界面
+                } else {
+                    App.ui.showNotification(result.message, 'error');
+                }
+            },
 
 
             openStudentPointsModal() {
