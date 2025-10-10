@@ -14,12 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
             leaderboardType: 'realtime',
             turntablePrizes: [],
             turntableCost: 10,
-            dashboardSortState: { column: 'points', direction: 'desc' }, 
+            dashboardSortState: { column: 'points', direction: 'desc' },
         },
 
         DOMElements: {
             // ... (您的 DOM 元素列表保持不变)
-            statStudentCount: document.getElementById('stat-student-count'), statGroupCount: document.getElementById('stat-group-count'), statTotalPoints: document.getElementById('stat-total-points'), statAvgPoints: document.getElementById('stat-avg-points'), navItems: document.querySelectorAll('.nav-item'), views: document.querySelectorAll('#main-content > div'), studentCardsContainer: document.getElementById('student-cards-container'), studentTableBody: document.querySelector('#student-table tbody'), studentTableHeader: document.querySelector('#student-table thead'), groupTableBody: document.querySelector('#group-table tbody'), recordTableBody: document.querySelector('#record-table tbody'), rewardsContainer: document.getElementById('rewards-container'), leaderboardList: document.getElementById('leaderboard-list'), leaderboardTitle: document.getElementById('leaderboard-title'), leaderboardToggle: document.querySelector('.leaderboard-toggle'), studentModal: document.getElementById('student-modal'), studentForm: document.getElementById('student-form'), studentModalTitle: document.getElementById('student-modal-title'), studentIdInput: document.getElementById('student-id'),studentIdDisplayInput: document.getElementById('student-id-display'), studentNameInput: document.getElementById('student-name'), studentGroupSelect: document.getElementById('student-group'), groupModal: document.getElementById('group-modal'), groupForm: document.getElementById('group-form'), groupIdInput: document.getElementById('group-id'), groupNameInput: document.getElementById('group-name'), rewardModal: document.getElementById('reward-modal'), rewardForm: document.getElementById('reward-form'), rewardModalTitle: document.getElementById('reward-modal-title'), rewardIdInput: document.getElementById('reward-id'), rewardNameInput: document.getElementById('reward-name'), rewardCostInput: document.getElementById('reward-cost'), redeemModal: document.getElementById('redeem-modal'), redeemForm: document.getElementById('redeem-form'), redeemRewardIdInput: document.getElementById('redeem-reward-id'), redeemRewardName: document.getElementById('redeem-reward-name'), redeemRewardCost: document.getElementById('redeem-reward-cost'), redeemStudentSelect: document.getElementById('redeem-student-select'), groupPointsModal: document.getElementById('group-points-modal'), groupPointsForm: document.getElementById('group-points-form'), groupPointsSelect: document.getElementById('group-points-select'), groupPointsAmount: document.getElementById('group-points-amount'), groupPointsReason: document.getElementById('group-points-reason'), pointsModal: document.getElementById('points-modal'), pointsForm: document.getElementById('points-form'), pointsStudentName: document.getElementById('points-student-name'), pointsStudentIdInput: document.getElementById('points-student-id-input'), pointsChangeAmount: document.getElementById('points-change-amount'), pointsChangeReason: document.getElementById('points-change-reason'), 
+            statStudentCount: document.getElementById('stat-student-count'), statGroupCount: document.getElementById('stat-group-count'), statTotalPoints: document.getElementById('stat-total-points'), statAvgPoints: document.getElementById('stat-avg-points'), navItems: document.querySelectorAll('.nav-item'), views: document.querySelectorAll('#main-content > div'), studentCardsContainer: document.getElementById('student-cards-container'), studentTableBody: document.querySelector('#student-table tbody'), studentTableHeader: document.querySelector('#student-table thead'), groupTableBody: document.querySelector('#group-table tbody'), recordTableBody: document.querySelector('#record-table tbody'), rewardsContainer: document.getElementById('rewards-container'), leaderboardList: document.getElementById('leaderboard-list'), leaderboardTitle: document.getElementById('leaderboard-title'), leaderboardToggle: document.querySelector('.leaderboard-toggle'), studentModal: document.getElementById('student-modal'), studentForm: document.getElementById('student-form'), studentModalTitle: document.getElementById('student-modal-title'), studentIdInput: document.getElementById('student-id'), studentIdDisplayInput: document.getElementById('student-id-display'), studentNameInput: document.getElementById('student-name'), studentGroupSelect: document.getElementById('student-group'), groupModal: document.getElementById('group-modal'), groupForm: document.getElementById('group-form'), groupIdInput: document.getElementById('group-id'), groupNameInput: document.getElementById('group-name'), rewardModal: document.getElementById('reward-modal'), rewardForm: document.getElementById('reward-form'), rewardModalTitle: document.getElementById('reward-modal-title'), rewardIdInput: document.getElementById('reward-id'), rewardNameInput: document.getElementById('reward-name'), rewardCostInput: document.getElementById('reward-cost'), redeemModal: document.getElementById('redeem-modal'), redeemForm: document.getElementById('redeem-form'), redeemRewardIdInput: document.getElementById('redeem-reward-id'), redeemRewardName: document.getElementById('redeem-reward-name'), redeemRewardCost: document.getElementById('redeem-reward-cost'), redeemStudentSelect: document.getElementById('redeem-student-select'), groupPointsModal: document.getElementById('group-points-modal'), groupPointsForm: document.getElementById('group-points-form'), groupPointsSelect: document.getElementById('group-points-select'), groupPointsAmount: document.getElementById('group-points-amount'), groupPointsReason: document.getElementById('group-points-reason'), pointsModal: document.getElementById('points-modal'), pointsForm: document.getElementById('points-form'), pointsStudentName: document.getElementById('points-student-name'), pointsStudentIdInput: document.getElementById('points-student-id-input'), pointsChangeAmount: document.getElementById('points-change-amount'), pointsChangeReason: document.getElementById('points-change-reason'),
             allPointsModal: document.getElementById('all-points-modal'), allPointsForm: document.getElementById('all-points-form'), allPointsAmount: document.getElementById('all-points-amount'), allPointsReason: document.getElementById('all-points-reason'),
             searchInput: document.getElementById('search-input'), importFileInput: document.getElementById('import-file-input'),
             turntableCanvas: document.getElementById('turntable-canvas'), turntableCostInput: document.getElementById('turntable-cost-input'),
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             studentPointsModal: document.getElementById('student-points-modal'),
             studentPointsForm: document.getElementById('student-points-form'),
-            studentPointsSelect: document.getElementById('student-points-select'),
+            studentPointsCheckboxContainer: document.getElementById('student-points-checkbox-container'),
             studentPointsAmount: document.getElementById('student-points-amount'),
             studentPointsReason: document.getElementById('student-points-reason'),
         },
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return null; // 返回 null
             }
         },
-        
+
         init() {
             App.loadData();
             if (!App.state.dashboardSortState) {
@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
             App.render();
         },
 
-        
+
 
         // --- 新增：UI 工具函数 ---
         ui: {
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
         actions: {
             generateId: () => '_' + Math.random().toString(36).substr(2, 9),
             addStudent(id, name, group) { // <-- 变化1：增加 id 参数
-                App.state.students.push({ id: id, name, group, points: 0, totalEarnedPoints: 0,totalDeductions: 0 }); // <-- 变化2：使用传入的 id
+                App.state.students.push({ id: id, name, group, points: 0, totalEarnedPoints: 0, totalDeductions: 0 }); // <-- 变化2：使用传入的 id
                 App.saveData();
                 return { success: true };
             },
@@ -213,7 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 App.saveData();
                 return { success: true };
             },
-            
+
             bulkUpdateGroupMembers(groupId, newMemberIds) {
                 // 1. 将该小组所有现有成员的小组ID清空
                 App.state.students.forEach(student => {
@@ -257,22 +257,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 return { success: true };
             },
             clearAllData() {
-                
+
                 App.state = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10, dashboardSortState: { column: 'points', direction: 'desc' } };
                 //App.state = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 };
                 App.saveData();
                 return { success: true };
             },
-             addReward(n, c) { App.state.rewards.push({ id: App.actions.generateId(), name: n, cost: parseInt(c) }); App.saveData(); return {success: true}; },
-            updateReward(i, n, c) { const r = App.state.rewards.find(r => r.id === i); if (r) { r.name = n; r.cost = parseInt(c); App.saveData(); } return {success: true};},
-            deleteReward(i) { App.state.rewards = App.state.rewards.filter(r => r.id !== i); App.saveData(); return {success: true};},
-            addTurntablePrize(name) { App.state.turntablePrizes.push({ id: App.actions.generateId(), text: name }); App.saveData(); return {success: true};},
-            updateTurntablePrize(id, name) { const prize = App.state.turntablePrizes.find(p => p.id === id); if (prize) { prize.text = name; App.saveData(); } return {success: true}; },
-            deleteTurntablePrize(id) { App.state.turntablePrizes = App.state.turntablePrizes.filter(p => p.id !== id); App.saveData(); return {success: true}; },
+            addReward(n, c) { App.state.rewards.push({ id: App.actions.generateId(), name: n, cost: parseInt(c) }); App.saveData(); return { success: true }; },
+            updateReward(i, n, c) { const r = App.state.rewards.find(r => r.id === i); if (r) { r.name = n; r.cost = parseInt(c); App.saveData(); } return { success: true }; },
+            deleteReward(i) { App.state.rewards = App.state.rewards.filter(r => r.id !== i); App.saveData(); return { success: true }; },
+            addTurntablePrize(name) { App.state.turntablePrizes.push({ id: App.actions.generateId(), text: name }); App.saveData(); return { success: true }; },
+            updateTurntablePrize(id, name) { const prize = App.state.turntablePrizes.find(p => p.id === id); if (prize) { prize.text = name; App.saveData(); } return { success: true }; },
+            deleteTurntablePrize(id) { App.state.turntablePrizes = App.state.turntablePrizes.filter(p => p.id !== id); App.saveData(); return { success: true }; },
         },
-        
+
         // ... (render, saveData, loadData, import/export 函数保持不变)
-        render() { App.render.stats(); App.render.dashboard(); App.render.leaderboard(); App.render.studentTable(); App.render.sortIndicators(); App.render.groupTable(); App.render.rewards(); App.render.records(); App.render.turntablePrizes();App.render.dashboardSortIndicators();},
+        render() { App.render.stats(); App.render.dashboard(); App.render.leaderboard(); App.render.studentTable(); App.render.sortIndicators(); App.render.groupTable(); App.render.rewards(); App.render.records(); App.render.turntablePrizes(); App.render.dashboardSortIndicators(); },
         saveData() { localStorage.setItem('classPointsData', JSON.stringify(App.state)); },
         loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; if (st.totalDeductions === undefined) st.totalDeductions = 0; /* <--- 新增此行 */ }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100, totalDeductions: 0 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80, totalDeductions: 0 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
         //loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.target.value = '';
         },
         //importData: (e) => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = (event) => { try { const d = JSON.parse(event.target.result); const ds = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; let s = false; if (Array.isArray(d)) { const nS = d.map(st => ({ id: String(st.id || st["id (学生ID)"]), name: st.name || st["name (姓名)"], group: st.group || st["group_id (小组ID)"] || "", points: parseInt(st.points || st["points (初始积分)"]) || 0, totalEarnedPoints: parseInt(st.points || st["points (初始积分)"]) || 0 })); App.state.students = nS; s = true; } else if (d.students && d.groups) { if (d.students) { d.students.forEach(student => { if (student.totalEarnedPoints === undefined) { student.totalEarnedPoints = student.points > 0 ? student.points : 0; } }); } App.state = { ...ds, ...d }; s = true; } if (s) { App.saveData(); App.render(); App.ui.showNotification('数据导入成功！'); } else { App.ui.showNotification('导入失败：文件格式不正确。', 'error'); } } catch (err) { console.error("Import Error:", err); App.ui.showNotification('导入失败：文件解析错误。', 'error'); } }; r.readAsText(f); e.target.value = ''; },
-        
+
         setupEventListeners() {
 
             App.DOMElements.navItems.forEach(i => i.addEventListener('click', e => App.handlers.handleNavClick(e)));
@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 App.render(); // 重新渲染所有视图
             },
 
-            handleNavClick: (e) => { const v = e.currentTarget.dataset.view; App.DOMElements.navItems.forEach(i => i.classList.remove('active')); e.currentTarget.classList.add('active'); App.DOMElements.views.forEach(v => v.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active'); if (v === 'turntable') { App.render.turntablePrizes(); App.handlers.initTurntable(); App.DOMElements.turntableCostInput.value = App.state.turntableCost; } if (v === 'print') {App.render.printStudentSelect(); } },
+            handleNavClick: (e) => { const v = e.currentTarget.dataset.view; App.DOMElements.navItems.forEach(i => i.classList.remove('active')); e.currentTarget.classList.add('active'); App.DOMElements.views.forEach(v => v.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active'); if (v === 'turntable') { App.render.turntablePrizes(); App.handlers.initTurntable(); App.DOMElements.turntableCostInput.value = App.state.turntableCost; } if (v === 'print') { App.render.printStudentSelect(); } },
             handleCardClick: (e) => {
                 const card = e.target.closest('.student-card');
                 if (!card) return;
@@ -582,7 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             //handleStudentFormSubmit: (e) => { e.preventDefault(); const id = App.DOMElements.studentIdInput.value; const name = App.DOMElements.studentNameInput.value.trim(); const group = App.DOMElements.studentGroupSelect.value; if (!name) { App.ui.showNotification('请输入学生姓名！', 'error'); return; } const result = id ? App.actions.updateStudent(id, name, group) : App.actions.addStudent(name, group); if (result.success) { App.ui.showNotification(id ? '学生信息已更新' : '学生添加成功'); App.ui.closeModal(App.DOMElements.studentModal); App.render(); } else { App.ui.showNotification(result.message, 'error'); } },
             handleGroupFormSubmit: (e) => { e.preventDefault(); const id = App.DOMElements.groupIdInput.value; const name = App.DOMElements.groupNameInput.value.trim(); if (!name) { App.ui.showNotification('请输入小组名称！', 'error'); return; } const result = id ? App.actions.updateGroup(id, name) : App.actions.addGroup(name); if (result.success) { App.ui.showNotification(id ? '小组信息已更新' : '小组添加成功'); App.ui.closeModal(App.DOMElements.groupModal); App.render(); } else { App.ui.showNotification(result.message, 'error'); } },
-            handleRewardFormSubmit: (e) => { e.preventDefault(); const id = App.DOMElements.rewardIdInput.value; const name = App.DOMElements.rewardNameInput.value.trim(); const cost = App.DOMElements.rewardCostInput.value; if (!name || !cost || cost < 1) { App.ui.showNotification('请填写有效的奖品名称和积分！', 'error'); return; } const result = id ? App.actions.updateReward(id, name, cost) : App.actions.addReward(name, cost); if(result.success) { App.ui.showNotification(id ? '奖品信息已更新' : '奖品上架成功'); App.ui.closeModal(App.DOMElements.rewardModal); App.render(); } },
+            handleRewardFormSubmit: (e) => { e.preventDefault(); const id = App.DOMElements.rewardIdInput.value; const name = App.DOMElements.rewardNameInput.value.trim(); const cost = App.DOMElements.rewardCostInput.value; if (!name || !cost || cost < 1) { App.ui.showNotification('请填写有效的奖品名称和积分！', 'error'); return; } const result = id ? App.actions.updateReward(id, name, cost) : App.actions.addReward(name, cost); if (result.success) { App.ui.showNotification(id ? '奖品信息已更新' : '奖品上架成功'); App.ui.closeModal(App.DOMElements.rewardModal); App.render(); } },
             handleRedeemFormSubmit: (e) => { e.preventDefault(); const studentId = App.DOMElements.redeemStudentSelect.value; const rewardId = App.DOMElements.redeemRewardIdInput.value; if (!studentId) { App.ui.showNotification('请选择一个学生！', 'error'); return; } const result = App.actions.redeemReward(studentId, rewardId); if (result.success) { const studentName = App.state.students.find(s => s.id === studentId).name; const rewardName = App.state.rewards.find(r => r.id === rewardId).name; App.ui.showNotification(`${studentName} 成功兑换 ${rewardName}！`); App.ui.closeModal(App.DOMElements.redeemModal); App.render(); } else { App.ui.showNotification(result.message, 'error'); } },
             handleGroupPointsFormSubmit: (e) => { e.preventDefault(); const groupId = App.DOMElements.groupPointsSelect.value; const points = App.DOMElements.groupPointsAmount.value; const reason = App.DOMElements.groupPointsReason.value.trim(); if (!groupId || !points || !reason || parseInt(points) === 0) { App.ui.showNotification('请填写所有有效字段！', 'error'); return; } const result = App.actions.addGroupPoints(groupId, parseInt(points), reason); if (result.success) { const groupName = App.state.groups.find(g => g.id === groupId)?.name; App.ui.showNotification(`已成功为【${groupName}】小组加分`); App.ui.closeModal(App.DOMElements.groupPointsModal); App.render(); } else { App.ui.showNotification(result.message, 'error'); } },
             handleAllPointsFormSubmit: (e) => { e.preventDefault(); const amount = App.DOMElements.allPointsAmount.value; const reason = App.DOMElements.allPointsReason.value.trim(); if (!amount || parseInt(amount) === 0 || !reason) { App.ui.showNotification('请填写有效的分数和原因！', 'error'); return; } const result = App.actions.addAllPoints(parseInt(amount), reason); if (result.success) { App.ui.showNotification('已成功为全班成员调整积分'); App.ui.closeModal(App.DOMElements.allPointsModal); App.render(); } else { App.ui.showNotification(result.message, 'error'); } },
@@ -612,7 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     App.ui.showNotification('转盘奖品已更新');
                 }
             },
-            
+
             handleTurntablePrizeTableClick: (e) => { const row = e.target.closest('tr'); if (!row) return; const prizeId = row.dataset.id; if (e.target.matches('.edit-btn')) App.handlers.openTurntablePrizeModal(prizeId); if (e.target.matches('.delete-btn')) { App.ui.showConfirm('确认删除此奖品吗？', () => { App.actions.deleteTurntablePrize(prizeId); App.handlers.initTurntable(); App.render.turntablePrizes(); App.ui.showNotification('奖品已删除。'); }); } },
             handleRewardCardClick: (e) => { const card = e.target.closest('.reward-card'); if (!card) return; const id = card.dataset.id; if (e.target.matches('.redeem-btn')) App.handlers.openRedeemModal(id); if (e.target.matches('.edit-btn')) App.handlers.openRewardModal(id); if (e.target.matches('.delete-btn')) { App.ui.showConfirm('确认删除此奖品吗？', () => { App.actions.deleteReward(id); App.render(); App.ui.showNotification('奖品已删除'); }); } },
             // ... (其余 modal open/close 和简单 handlers 保持不变或已整合)
@@ -707,46 +707,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
             openStudentPointsModal() {
                 App.DOMElements.studentPointsForm.reset();
-                const select = App.DOMElements.studentPointsSelect;
-                select.innerHTML = '<option value="">-- 请选择一个学生 --</option>';
-                // 为方便选择，按姓名排序
+                const container = App.DOMElements.studentPointsCheckboxContainer;
+                container.innerHTML = ''; // 清空旧内容
+
+                // 按姓名排序学生，方便查找
                 App.state.students
-                    .slice() // 创建副本以进行排序
+                    .slice()
                     .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'))
                     .forEach(s => {
-                        const option = document.createElement('option');
-                        option.value = s.id;
-                        option.innerText = `${s.name} (当前: ${s.points}分)`;
-                        select.add(option);
+                        const item = document.createElement('div');
+                        item.className = 'checkbox-item';
+
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = `student-chk-${s.id}`;
+                        checkbox.value = s.id;
+                        checkbox.name = 'selected_students';
+
+                        const label = document.createElement('label');
+                        label.htmlFor = `student-chk-${s.id}`;
+                        label.textContent = s.name;
+
+                        // 让点击整个项目也能选中/取消选中复选框
+                        item.addEventListener('click', (e) => {
+                            if (e.target.tagName !== 'INPUT') {
+                                checkbox.checked = !checkbox.checked;
+                            }
+                        });
+
+                        item.appendChild(checkbox);
+                        item.appendChild(label);
+                        container.appendChild(item);
                     });
+
                 App.ui.openModal(App.DOMElements.studentPointsModal);
             },
-        
+
             handleStudentPointsFormSubmit(e) {
                 e.preventDefault();
-                const studentId = App.DOMElements.studentPointsSelect.value;
+
+                // 查找所有被选中的学生复选框
+                const selectedCheckboxes = document.querySelectorAll('#student-points-checkbox-container input[type="checkbox"]:checked');
+                const selectedStudentIds = Array.from(selectedCheckboxes).map(cb => cb.value);
+
                 const amount = App.DOMElements.studentPointsAmount.value;
                 const reason = App.DOMElements.studentPointsReason.value.trim();
-        
-                if (!studentId || !amount || !reason || parseInt(amount) === 0) {
-                    App.ui.showNotification('请选择学生并填写有效的分数和原因！', 'error');
+
+                if (selectedStudentIds.length === 0) {
+                    App.ui.showNotification('请至少选择一个学生！', 'error');
                     return;
                 }
-        
-                const result = App.actions.changePoints(studentId, parseInt(amount), reason);
-                if (result.success) {
-                    const studentName = App.state.students.find(s => s.id === studentId)?.name;
-                    App.ui.showNotification(`已成功为【${studentName}】调整积分`);
-                    App.ui.closeModal(App.DOMElements.studentPointsModal);
-                    App.render();
-                } else {
-                    App.ui.showNotification(result.message, 'error');
+
+                if (!amount || !reason || parseInt(amount) === 0) {
+                    App.ui.showNotification('请填写有效的分数和原因！', 'error');
+                    return;
                 }
+
+                const points = parseInt(amount);
+
+                // 循环为每一位选中的学生执行加分/扣分操作
+                selectedStudentIds.forEach(studentId => {
+                    App.actions.changePoints(studentId, points, reason);
+                });
             },
         },
 
         /* --- 您新增的打印功能对象 --- */
-        print:{
+        print: {
             // 打印的核心函数，负责打开新窗口并执行打印
             _printContent(title, content) {
                 const printWindow = window.open('', '_blank', 'height=600,width=800');
@@ -898,13 +925,13 @@ document.addEventListener('DOMContentLoaded', () => {
         "render.dashboard": (st = '') => {
             const c = App.DOMElements.studentCardsContainer;
             c.innerHTML = '';
-            
+
             // 1. 先按搜索词过滤
             let studentsToRender = App.state.students.filter(s => s.name.toLowerCase().includes(st.toLowerCase()));
-            
-            if (studentsToRender.length === 0) { 
-                c.innerHTML = '<p>没有找到符合条件的学生。</p>'; 
-                return; 
+
+            if (studentsToRender.length === 0) {
+                c.innerHTML = '<p>没有找到符合条件的学生。</p>';
+                return;
             }
 
             // 2. 对过滤后的结果进行排序
@@ -957,7 +984,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         },
 
-        
+
         "render.bulkGroupEditor": (groupId) => {
             const unassignedList = App.DOMElements.unassignedStudentsList;
             const assignedList = App.DOMElements.assignedStudentsList;
@@ -1114,9 +1141,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
         },
         "render.dashboardSortIndicators": () => {
-             const { column, direction } = App.state.dashboardSortState;
-             const buttons = App.DOMElements.dashboardSortControls.querySelectorAll('.sort-btn');
-             buttons.forEach(btn => {
+            const { column, direction } = App.state.dashboardSortState;
+            const buttons = App.DOMElements.dashboardSortControls.querySelectorAll('.sort-btn');
+            buttons.forEach(btn => {
                 const indicator = btn.querySelector('.sort-indicator');
                 btn.classList.remove('active');
                 if (indicator) indicator.textContent = '';
@@ -1125,7 +1152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.classList.add('active');
                     if (indicator) indicator.textContent = direction === 'asc' ? ' ▲' : ' ▼';
                 }
-             });
+            });
         },
     };
 

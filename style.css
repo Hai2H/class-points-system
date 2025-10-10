@@ -883,3 +883,53 @@ form input:focus, form select:focus {
   margin-left: 6px;
   font-weight: bold;
 }
+
+
+/* ========== 在 style.css 文件末尾添加以下代码 ========== */
+
+/* --- 批量选择学生复选框容器样式 --- */
+.student-checkbox-container {
+  max-height: 250px;
+  overflow-y: auto;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+  background-color: #f8f9fa;
+  display: grid;
+  /* 自动填充列，每列最小150px */
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.student-checkbox-container .checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--card-background);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.student-checkbox-container .checkbox-item:hover {
+    background-color: #eef2f7;
+}
+
+/* 让复选框本身恢复正常大小 */
+.student-checkbox-container .checkbox-item input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+/* 让学生姓名标签充满整个项目，方便点击 */
+.student-checkbox-container .checkbox-item label {
+  margin-bottom: 0;
+  font-weight: normal;
+  color: var(--font-color);
+  width: 100%;
+  cursor: pointer;
+}
+/* ==================================================== */

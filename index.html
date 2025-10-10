@@ -387,28 +387,29 @@
     </div>
   </div>
 
-  <div id="student-points-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>为学生加/扣分</h2>
-        <span class="close-btn">&times;</span>
-      </div>
-      <form id="student-points-form">
-        <label for="student-points-select">选择学生:</label>
-        <select id="student-points-select" required></select>
-
-        <label for="student-points-amount">增减分数 (正数加分, 负数扣分):</label>
-        <input type="number" id="student-points-amount" required placeholder="例如: 5 或 -3">
-
-        <label for="student-points-reason">原因:</label>
-        <input type="text" id="student-points-reason" required placeholder="例如：上课积极回答问题">
-
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">确认操作</button>
-        </div>
-      </form>
+<div id="student-points-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>批量为学生加/扣分</h2>
+      <span class="close-btn">&times;</span>
     </div>
+    <form id="student-points-form">
+      <label>选择学生 (可多选):</label>
+      <div id="student-points-checkbox-container" class="student-checkbox-container">
+          </div>
+
+      <label for="student-points-amount">增减分数 (正数加分, 负数扣分):</label>
+      <input type="number" id="student-points-amount" required placeholder="例如: 5 或 -3">
+
+      <label for="student-points-reason">原因:</label>
+      <input type="text" id="student-points-reason" required placeholder="例如：完成小组任务">
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">确认操作</button>
+      </div>
+    </form>
   </div>
+</div>
 
   <div id="all-points-modal" class="modal">
     <div class="modal-content">
