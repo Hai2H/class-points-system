@@ -23,4 +23,6 @@
 您只需要下载到本地，保持index.html、script.js和style.css在同一文件夹下，双击打开index.html就能直接使用，有新版本发布时候需要再次下载。
 注意：
 1、数据只会存储在本地浏览器当中，如果换电脑需要导出旧电脑数据，在新电脑上导入数据即可。
-2、您也可以直接用：https://guilin-wu.github.io/class-points-system/  来直接访问，但是新功能上线后需要清楚网页数据<img width="764" height="66" alt="image" src="https://github.com/user-attachments/assets/f606109e-4e75-460c-bb2e-d6321c2f5f62" />强制刷新页面来更新新版本内容！！！
+2、您也可以直接用：https://guilin-wu.github.io/class-points-system/  来直接访问，但是新功能上线后需要清楚网页数据
+<img width="764" height="66" alt="image" src="https://github.com/user-attachments/assets/f606109e-4e75-460c-bb2e-d6321c2f5f62" /> 
+强制刷新页面来更新新版本内容！！！
