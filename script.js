@@ -51,7 +51,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             printStudentSelect: document.getElementById('print-student-select'),
             btnPrintSummary: document.getElementById('btn-print-summary'),
-            btnPrintDetails: document.getElementById('btn-print-details')
+            btnPrintDetails: document.getElementById('btn-print-details'),
+
+
+            studentPointsModal: document.getElementById('student-points-modal'),
+            studentPointsForm: document.getElementById('student-points-form'),
+            studentPointsSelect: document.getElementById('student-points-select'),
+            studentPointsAmount: document.getElementById('student-points-amount'),
+            studentPointsReason: document.getElementById('student-points-reason'),
         },
 
 
@@ -410,6 +417,10 @@ document.addEventListener('DOMContentLoaded', () => {
             App.DOMElements.btnPrintSummary.addEventListener('click', () => App.print.summary());
             App.DOMElements.btnPrintDetails.addEventListener('click', () => App.print.details());
 
+
+            document.getElementById('btn-add-student-points').addEventListener('click', () => App.handlers.openStudentPointsModal());
+            App.DOMElements.studentPointsForm.addEventListener('submit', e => App.handlers.handleStudentPointsFormSubmit(e));
+
         },
 
         // --- 重构：Handlers ---
@@ -692,6 +703,46 @@ document.addEventListener('DOMContentLoaded', () => {
             //initTurntable() { if (!App.DOMElements.turntableCanvas) return; if (App.turntableInstance) { App.turntableInstance.stopAnimation(false); App.turntableInstance = null; } const prizes = App.state.turntablePrizes.length > 0 ? App.state.turntablePrizes : [{ text: '谢谢参与' }]; const colors = ["#8C236E", "#2C638C", "#3C8C4D", "#D99E3D", "#D9523D", "#8C2323", "#45238C", "#238C80"]; App.turntableInstance = new Winwheel({ 'canvasId': 'turntable-canvas', 'numSegments': prizes.length, 'responsive': true, 'segments': prizes.map((p, i) => ({ ...p, fillStyle: colors[i % colors.length], textFillStyle: '#ffffff' })), 'animation': { 'type': 'spinToStop', 'duration': 8, 'spins': 10, 'callbackFinished': App.handlers.spinFinished, } }); },
             handleSortClick: (e) => { const h = e.target.closest('th.sortable'); if (!h) return; const sKey = h.dataset.sort; const cSort = App.state.sortState; let nDir = 'asc'; if (cSort.column === sKey) { nDir = cSort.direction === 'asc' ? 'desc' : 'asc' } App.state.sortState = { column: sKey, direction: nDir }; App.render() },
             handleLeaderboardToggle: (e) => { const b = e.target.closest('.toggle-btn'); if (!b) return; const t = b.dataset.type; if (App.state.leaderboardType !== t) { App.state.leaderboardType = t; App.render(); } },
+
+
+            openStudentPointsModal() {
+                App.DOMElements.studentPointsForm.reset();
+                const select = App.DOMElements.studentPointsSelect;
+                select.innerHTML = '<option value="">-- 请选择一个学生 --</option>';
+                // 为方便选择，按姓名排序
+                App.state.students
+                    .slice() // 创建副本以进行排序
+                    .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'))
+                    .forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s.id;
+                        option.innerText = `${s.name} (当前: ${s.points}分)`;
+                        select.add(option);
+                    });
+                App.ui.openModal(App.DOMElements.studentPointsModal);
+            },
+        
+            handleStudentPointsFormSubmit(e) {
+                e.preventDefault();
+                const studentId = App.DOMElements.studentPointsSelect.value;
+                const amount = App.DOMElements.studentPointsAmount.value;
+                const reason = App.DOMElements.studentPointsReason.value.trim();
+        
+                if (!studentId || !amount || !reason || parseInt(amount) === 0) {
+                    App.ui.showNotification('请选择学生并填写有效的分数和原因！', 'error');
+                    return;
+                }
+        
+                const result = App.actions.changePoints(studentId, parseInt(amount), reason);
+                if (result.success) {
+                    const studentName = App.state.students.find(s => s.id === studentId)?.name;
+                    App.ui.showNotification(`已成功为【${studentName}】调整积分`);
+                    App.ui.closeModal(App.DOMElements.studentPointsModal);
+                    App.render();
+                } else {
+                    App.ui.showNotification(result.message, 'error');
+                }
+            },
         },
 
         /* --- 您新增的打印功能对象 --- */
