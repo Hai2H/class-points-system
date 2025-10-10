@@ -507,8 +507,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 App.state.dashboardSortState = { column: sortKey, direction: newDirection };
                 App.render(); // 重新渲染所有视图
             },
+            // ========== 在 script.js 中，用下面这个最终优化版的代码块，完整替换掉旧的 handleNavClick 函数 ==========
+            handleNavClick: (e) => {
+                const v = e.currentTarget.dataset.view;
+                App.DOMElements.navItems.forEach(i => i.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                App.DOMElements.views.forEach(v => v.classList.remove('active'));
+                document.getElementById(`view-${v}`).classList.add('active');
 
-            handleNavClick: (e) => { const v = e.currentTarget.dataset.view; App.DOMElements.navItems.forEach(i => i.classList.remove('active')); e.currentTarget.classList.add('active'); App.DOMElements.views.forEach(v => v.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active'); if (v === 'turntable') { App.render.turntablePrizes(); App.handlers.initTurntable(); App.DOMElements.turntableCostInput.value = App.state.turntableCost; } if (v === 'print') { App.render.printStudentSelect(); } },
+                // 如果用户点击的是“幸运大转盘”，则进行初始化
+                if (v === 'turntable') {
+                    App.render.turntablePrizes();
+                    App.handlers.initTurntable();
+                    App.DOMElements.turntableCostInput.value = App.state.turntableCost;
+                }
+                // 否则（即用户离开大转盘或访问其他页面），检查并销毁大转盘实例
+                else if (App.turntableInstance) {
+
+                    // --- 核心修复：更安全的清理逻辑 ---
+                    App.turntableInstance.responsive = false; // 停止响应式，移除事件监听
+
+                    // **关键修改**：只在转盘正在转动时才调用 stopAnimation
+                    if (App.turntableInstance.isSpinning) {
+                        App.turntableInstance.stopAnimation(false);
+                    }
+
+                    // 清理画布
+                    const canvas = App.DOMElements.turntableCanvas;
+                    if (canvas) {
+                        const ctx = canvas.getContext('2d');
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    }
+                    // 将实例设置为空
+                    App.turntableInstance = null;
+                }
+
+                // 保留其他页面的逻辑
+                if (v === 'print') {
+                    App.render.printStudentSelect();
+                }
+            },
+            // =================================================================================================
+
+            //handleNavClick: (e) => { const v = e.currentTarget.dataset.view; App.DOMElements.navItems.forEach(i => i.classList.remove('active')); e.currentTarget.classList.add('active'); App.DOMElements.views.forEach(v => v.classList.remove('active')); document.getElementById(`view-${v}`).classList.add('active'); if (v === 'turntable') { App.render.turntablePrizes(); App.handlers.initTurntable(); App.DOMElements.turntableCostInput.value = App.state.turntableCost; } if (v === 'print') { App.render.printStudentSelect(); } },
             handleCardClick: (e) => {
                 const card = e.target.closest('.student-card');
                 if (!card) return;
@@ -710,38 +751,32 @@ document.addEventListener('DOMContentLoaded', () => {
             openAllPointsModal() { App.DOMElements.allPointsForm.reset(); App.ui.openModal(App.DOMElements.allPointsModal); },
             openTurntablePrizeModal(id = null) { App.DOMElements.turntablePrizeForm.reset(); App.DOMElements.turntablePrizeIdInput.value = id || ''; if (id) { const p = App.state.turntablePrizes.find(p => p.id === id); App.DOMElements.turntablePrizeNameInput.value = p.text; App.DOMElements.turntablePrizeModalTitle.innerText = '编辑奖品'; } else { App.DOMElements.turntablePrizeModalTitle.innerText = '新增奖品'; } App.ui.openModal(App.DOMElements.turntablePrizeModal); },
             openSpinSelectModal() { if (App.turntableInstance && App.turntableInstance.isSpinning) return; if (App.state.turntablePrizes.length === 0) { App.ui.showNotification('请先在右侧添加奖品！', 'error'); return; } App.DOMElements.spinCostDisplay.innerText = App.state.turntableCost; const s = App.DOMElements.spinStudentSelect; s.innerHTML = '<option value="">-- 选择学生 --</option>'; App.state.students.filter(st => st.points >= App.state.turntableCost).forEach(st => { const o = document.createElement('option'); o.value = st.id; o.innerText = `${st.name} (当前 ${st.points} 积分)`; s.add(o) }); App.ui.openModal(App.DOMElements.spinSelectModal); },
+            // ========== 在 script.js 的 App.handlers 对象中，用下面这个函数完整替换掉旧的 initTurntable 函数 ==========
             initTurntable() {
                 // 确保 canvas 元素存在
                 if (!App.DOMElements.turntableCanvas) return;
 
-                // --- 关键修复：更彻底的清理 ---
-
-                // 1. 如果旧的转盘实例存在，先停止它正在进行的任何动画。
-                //    这是避免 'kill' 错误的第一步。
+                // --- 关键修复：在重置前也进行安全检查 ---
                 if (App.turntableInstance) {
-                    App.turntableInstance.stopAnimation(false);
+                    // **核心修改**：只有当转盘正在转动时，才调用 stopAnimation
+                    if (App.turntableInstance.isSpinning) {
+                        App.turntableInstance.stopAnimation(false);
+                    }
                 }
 
-                // 2. 【核心修复】强制清空整个 canvas 画布。
-                //    这一步至关重要，它会擦除掉所有旧转盘的视觉残留，
-                //    并重置画布状态，防止新旧绘图冲突，解决了转盘消失的问题。
+                // --- 后面是现有的、正确的清理和重置逻辑 ---
                 const canvas = App.DOMElements.turntableCanvas;
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-                // 3. 将旧的实例引用设为 null，以便垃圾回收。
                 App.turntableInstance = null;
 
-                // --- 清理完成，开始创建新实例 ---
-
-                // 4. 使用更新后的 state.turntablePrizes 数据来创建新的转盘。
                 const prizes = App.state.turntablePrizes.length > 0
                     ? App.state.turntablePrizes
-                    : [{ text: '谢谢参与' }]; // 如果没有奖品，提供一个默认项
+                    : [{ text: '谢谢参与' }];
 
                 const colors = ["#8C236E", "#2C638C", "#3C8C4D", "#D99E3D", "#D9523D", "#8C2323", "#45238C", "#238C80"];
 
-                // 创建一个全新的、干净的 Winwheel 实例
                 App.turntableInstance = new Winwheel({
                     'canvasId': 'turntable-canvas',
                     'numSegments': prizes.length,
@@ -749,7 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     'segments': prizes.map((p, i) => ({
                         ...p,
                         fillStyle: colors[i % colors.length],
-                        textFillStyle: '#ffffff' // 确保文字在深色背景上可见
+                        textFillStyle: '#ffffff'
                     })),
                     'animation': {
                         'type': 'spinToStop',
@@ -759,6 +794,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             },
+            // ===========================================================================================
             //initTurntable() { if (!App.DOMElements.turntableCanvas) return; if (App.turntableInstance) { App.turntableInstance.stopAnimation(false); App.turntableInstance = null; } const prizes = App.state.turntablePrizes.length > 0 ? App.state.turntablePrizes : [{ text: '谢谢参与' }]; const colors = ["#8C236E", "#2C638C", "#3C8C4D", "#D99E3D", "#D9523D", "#8C2323", "#45238C", "#238C80"]; App.turntableInstance = new Winwheel({ 'canvasId': 'turntable-canvas', 'numSegments': prizes.length, 'responsive': true, 'segments': prizes.map((p, i) => ({ ...p, fillStyle: colors[i % colors.length], textFillStyle: '#ffffff' })), 'animation': { 'type': 'spinToStop', 'duration': 8, 'spins': 10, 'callbackFinished': App.handlers.spinFinished, } }); },
             handleSortClick: (e) => { const h = e.target.closest('th.sortable'); if (!h) return; const sKey = h.dataset.sort; const cSort = App.state.sortState; let nDir = 'asc'; if (cSort.column === sKey) { nDir = cSort.direction === 'asc' ? 'desc' : 'asc' } App.state.sortState = { column: sKey, direction: nDir }; App.render() },
             handleLeaderboardToggle: (e) => { const b = e.target.closest('.toggle-btn'); if (!b) return; const t = b.dataset.type; if (App.state.leaderboardType !== t) { App.state.leaderboardType = t; App.render(); } },
