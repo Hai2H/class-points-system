@@ -827,70 +827,78 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             openStudentPointsModal() {
-                App.DOMElements.studentPointsForm.reset();
-                const container = App.DOMElements.studentPointsCheckboxContainer;
-                container.innerHTML = ''; // 清空旧内容
+                // 1. 清空旧的复选框
+                App.DOMElements.studentPointsCheckboxContainer.innerHTML = '';
 
-                // 按姓名排序学生，方便查找
+                // 2. 生成新的学生复选框
+                // 确保学生按姓名排序，并显示实时积分
                 App.state.students
-                    .slice()
-                    .sort((a, b) => a.name.localeCompare(b.name, 'zh-Hans-CN'))
-                    .forEach(s => {
-                        const item = document.createElement('div');
-                        item.className = 'checkbox-item';
-
-                        const checkbox = document.createElement('input');
-                        checkbox.type = 'checkbox';
-                        checkbox.id = `student-chk-${s.id}`;
-                        checkbox.value = s.id;
-                        checkbox.name = 'selected_students';
-
-                        const label = document.createElement('label');
-                        label.htmlFor = `student-chk-${s.id}`;
-                        label.textContent = s.name;
-
-                        // 让点击整个项目也能选中/取消选中复选框
-                        item.addEventListener('click', (e) => {
-                            if (e.target.tagName !== 'INPUT') {
-                                checkbox.checked = !checkbox.checked;
-                            }
-                        });
-
-                        item.appendChild(checkbox);
-                        item.appendChild(label);
-                        container.appendChild(item);
+                    .sort((a, b) => String(a.name).localeCompare(String(b.name), 'zh-Hans-CN'))
+                    .forEach(student => {
+                        const checkboxDiv = document.createElement('div');
+                        checkboxDiv.className = 'checkbox-item';
+                        // 使用 student.points 显示当前积分，方便用户参考
+                        checkboxDiv.innerHTML = `
+                <input type="checkbox" id="student-point-${student.id}" name="student-ids" value="${student.id}">
+                <label for="student-point-${student.id}">${student.name} (${student.points}⭐)</label>
+            `;
+                        App.DOMElements.studentPointsCheckboxContainer.appendChild(checkboxDiv);
                     });
 
+                // 3. 打开模态框 (studentPointsModal 已经在 DOMElements 中定义)
                 App.ui.openModal(App.DOMElements.studentPointsModal);
             },
 
             handleStudentPointsFormSubmit(e) {
+                // 关键修复点 1: 阻止表单默认提交行为，防止页面刷新
                 e.preventDefault();
 
-                // 查找所有被选中的学生复选框
-                const selectedCheckboxes = document.querySelectorAll('#student-points-checkbox-container input[type="checkbox"]:checked');
+                const form = e.target;
+                const amountInput = App.DOMElements.studentPointsAmount;
+                const reasonInput = App.DOMElements.studentPointsReason;
+
+                const pointsDelta = parseInt(amountInput.value);
+                const reason = reasonInput.value.trim();
+
+                if (isNaN(pointsDelta) || pointsDelta === 0) {
+                    App.ui.showNotification('请输入一个非零的积分数值！', 'error');
+                    return;
+                }
+
+                if (!reason) {
+                    App.ui.showNotification('请输入加分/扣分的原因！', 'error');
+                    return;
+                }
+
+                // 获取所有选中的学生ID
+                // 注意：这里的 name 属性需要在 HTML 表单中的 input 标签上设置
+                const selectedCheckboxes = form.querySelectorAll('input[name="student-ids"]:checked');
                 const selectedStudentIds = Array.from(selectedCheckboxes).map(cb => cb.value);
 
-                const amount = App.DOMElements.studentPointsAmount.value;
-                const reason = App.DOMElements.studentPointsReason.value.trim();
-
                 if (selectedStudentIds.length === 0) {
-                    App.ui.showNotification('请至少选择一个学生！', 'error');
+                    App.ui.showNotification('请至少选择一位学生！', 'error');
                     return;
                 }
 
-                if (!amount || !reason || parseInt(amount) === 0) {
-                    App.ui.showNotification('请填写有效的分数和原因！', 'error');
-                    return;
-                }
-
-                const points = parseInt(amount);
-
-                // 循环为每一位选中的学生执行加分/扣分操作
+                // 批量更新积分
                 selectedStudentIds.forEach(studentId => {
-                    App.actions.changePoints(studentId, points, reason);
+                    // App.actions.changePoints 是你已有的数据更新和保存逻辑
+                    App.actions.changePoints(studentId, pointsDelta, reason);
                 });
-            },
+
+                // 关键修复点 2: 关闭模态框
+                App.ui.closeModal(App.DOMElements.studentPointsModal);
+
+                // 关键修复点 3: 重新渲染 UI，更新积分数据，无需刷新页面
+                App.render();
+
+                // 通知用户操作结果
+                const action = pointsDelta > 0 ? '加分' : '扣分';
+                App.ui.showNotification(`成功为 ${selectedStudentIds.length} 名学生${action} ${Math.abs(pointsDelta)} 分！`);
+
+                // 重置表单，以便下次使用
+                form.reset();
+            }
         },
 
         /* --- 您新增的打印功能对象 --- */
