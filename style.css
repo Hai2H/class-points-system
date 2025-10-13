@@ -933,3 +933,19 @@ form input:focus, form select:focus {
   cursor: pointer;
 }
 /* ==================================================== */
+
+
+/* --- 导出选择模态框样式 --- */
+.export-choices {
+  display: flex;
+  flex-direction: column; /* 垂直排列 */
+  gap: 15px; /* 按钮之间的间距 */
+  margin-top: 20px;
+}
+
+.export-choices .btn {
+  width: 100%; /* 按钮宽度占满 */
+  justify-content: center; /* 按钮内容居中 */
+  padding: 12px;
+  font-size: 1em;
+}

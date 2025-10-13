@@ -64,6 +64,12 @@ document.addEventListener('DOMContentLoaded', () => {
             pasteImportModal: document.getElementById('paste-import-modal'),
             pasteImportForm: document.getElementById('paste-import-form'),
             pasteStudentNames: document.getElementById('paste-student-names'),
+
+
+            // 新增：导出选择模态框的元素
+            exportChoiceModal: document.getElementById('export-choice-modal'),
+            btnExportChoiceJson: document.getElementById('btn-export-choice-json'),
+            btnExportChoiceExcel: document.getElementById('btn-export-choice-excel'),
         },
 
 
@@ -332,7 +338,53 @@ document.addEventListener('DOMContentLoaded', () => {
         saveData() { localStorage.setItem('classPointsData', JSON.stringify(App.state)); },
         loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; if (st.totalDeductions === undefined) st.totalDeductions = 0; /* <--- 新增此行 */ }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100, totalDeductions: 0 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80, totalDeductions: 0 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
         //loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
-        exportData: () => { const d = JSON.stringify(App.state, null, 2); const b = new Blob([d], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `class_data_${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(u) },
+        //exportData: () => { const d = JSON.stringify(App.state, null, 2); const b = new Blob([d], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `class_data_${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(u) },
+
+
+        // 将旧的 exportData 函数替换为这两个
+        exportDataJSON: () => {
+            const d = JSON.stringify(App.state, null, 2);
+            const b = new Blob([d], { type: 'application/json' });
+            const u = URL.createObjectURL(b);
+            const a = document.createElement('a');
+            a.href = u;
+            a.download = `class_data_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(u);
+        },
+
+        exportDataExcel: () => {
+            const studentsForExport = App.state.students.map(s => {
+                const group = App.state.groups.find(g => g.id === s.group);
+                return {
+                    id: s.id,
+                    name: s.name,
+                    group: s.group, // 保留group id用于精确导入
+                    groupName: group ? group.name : '未分组', // 额外提供小组名称方便查看
+                    points: s.points,
+                    totalEarnedPoints: s.totalEarnedPoints || 0,
+                    totalDeductions: s.totalDeductions || 0
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(studentsForExport);
+
+            // 设置列宽以优化可读性
+            worksheet['!cols'] = [
+                { wch: 15 }, // id
+                { wch: 15 }, // name
+                { wch: 20 }, // group (ID)
+                { wch: 15 }, // groupName
+                { wch: 10 }, // points
+                { wch: 15 }, // totalEarnedPoints
+                { wch: 15 }  // totalDeductions
+            ];
+
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+
+            XLSX.writeFile(workbook, `class_students_data_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        },
 
         importData: (e) => {
             const file = e.target.files[0];
@@ -429,9 +481,13 @@ document.addEventListener('DOMContentLoaded', () => {
         //importData: (e) => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = (event) => { try { const d = JSON.parse(event.target.result); const ds = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; let s = false; if (Array.isArray(d)) { const nS = d.map(st => ({ id: String(st.id || st["id (学生ID)"]), name: st.name || st["name (姓名)"], group: st.group || st["group_id (小组ID)"] || "", points: parseInt(st.points || st["points (初始积分)"]) || 0, totalEarnedPoints: parseInt(st.points || st["points (初始积分)"]) || 0 })); App.state.students = nS; s = true; } else if (d.students && d.groups) { if (d.students) { d.students.forEach(student => { if (student.totalEarnedPoints === undefined) { student.totalEarnedPoints = student.points > 0 ? student.points : 0; } }); } App.state = { ...ds, ...d }; s = true; } if (s) { App.saveData(); App.render(); App.ui.showNotification('数据导入成功！'); } else { App.ui.showNotification('导入失败：文件格式不正确。', 'error'); } } catch (err) { console.error("Import Error:", err); App.ui.showNotification('导入失败：文件解析错误。', 'error'); } }; r.readAsText(f); e.target.value = ''; },
 
         setupEventListeners() {
-
+            // 页面导航
             App.DOMElements.navItems.forEach(i => i.addEventListener('click', e => App.handlers.handleNavClick(e)));
+
+            // 所有模态框的关闭按钮
             document.querySelectorAll('.modal .close-btn').forEach(b => b.addEventListener('click', e => App.ui.closeModal(e.target.closest('.modal'))));
+
+            // 各个表单的提交事件
             App.DOMElements.studentForm.addEventListener('submit', e => App.handlers.handleStudentFormSubmit(e));
             App.DOMElements.groupForm.addEventListener('submit', e => App.handlers.handleGroupFormSubmit(e));
             App.DOMElements.rewardForm.addEventListener('submit', e => App.handlers.handleRewardFormSubmit(e));
@@ -441,6 +497,11 @@ document.addEventListener('DOMContentLoaded', () => {
             App.DOMElements.allPointsForm.addEventListener('submit', e => App.handlers.handleAllPointsFormSubmit(e));
             App.DOMElements.turntablePrizeForm.addEventListener('submit', e => App.handlers.handleTurntablePrizeFormSubmit(e));
             App.DOMElements.spinSelectForm.addEventListener('submit', e => App.handlers.handleSpinSelectFormSubmit(e));
+            App.DOMElements.bulkGroupForm.addEventListener('submit', e => App.handlers.handleBulkGroupFormSubmit(e));
+            App.DOMElements.pasteImportForm.addEventListener('submit', e => App.handlers.handlePasteImportSubmit(e));
+            App.DOMElements.studentPointsForm.addEventListener('submit', e => App.handlers.handleStudentPointsFormSubmit(e));
+
+            // 页面主要按钮的点击事件
             document.getElementById('btn-add-student').addEventListener('click', () => App.handlers.openStudentModal());
             document.getElementById('btn-add-group').addEventListener('click', () => App.handlers.openGroupModal());
             document.getElementById('btn-add-reward').addEventListener('click', () => App.handlers.openRewardModal());
@@ -448,38 +509,56 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('btn-add-all-points').addEventListener('click', () => App.handlers.openAllPointsModal());
             document.getElementById('btn-add-turntable-prize').addEventListener('click', () => App.handlers.openTurntablePrizeModal());
             document.getElementById('btn-spin').addEventListener('click', () => App.handlers.openSpinSelectModal());
-            document.getElementById('btn-clear-data').addEventListener('click', () => { App.ui.showConfirm('警告：此操作将清空所有数据且不可撤销！确认吗？', () => { App.actions.clearAllData(); App.render(); App.ui.showNotification('所有数据已清空。'); }); });
-            document.getElementById('btn-export-data').addEventListener('click', () => App.exportData());
+            document.getElementById('btn-add-student-points').addEventListener('click', () => App.handlers.openStudentPointsModal());
+            document.getElementById('btn-paste-import-students').addEventListener('click', () => App.handlers.openPasteImportModal());
+
+            // 数据操作按钮（清空、导入、导出）
+            document.getElementById('btn-clear-data').addEventListener('click', () => {
+                App.ui.showConfirm('警告：此操作将清空所有数据且不可撤销！确认吗？', () => {
+                    App.actions.clearAllData();
+                    App.render();
+                    App.ui.showNotification('所有数据已清空。');
+                });
+            });
+
+            // --- 以下是修正后的导出/导入逻辑 ---
+
+            // 1. “导出数据”按钮只负责打开选择模态框
+            document.getElementById('btn-export-data').addEventListener('click', () => {
+                App.ui.openModal(App.DOMElements.exportChoiceModal);
+            });
+
+            // 2. 模态框内的“导出JSON”按钮负责执行JSON导出并关闭模态框
+            App.DOMElements.btnExportChoiceJson.addEventListener('click', () => {
+                App.exportDataJSON();
+                App.ui.closeModal(App.DOMElements.exportChoiceModal);
+            });
+
+            // 3. 模态框内的“导出Excel”按钮负责执行Excel导出并关闭模态框
+            App.DOMElements.btnExportChoiceExcel.addEventListener('click', () => {
+                App.exportDataExcel();
+                App.ui.closeModal(App.DOMElements.exportChoiceModal);
+            });
+
+            // 4. “导入数据”按钮负责触发文件选择框
             document.getElementById('btn-import-data').addEventListener('click', () => App.DOMElements.importFileInput.click());
             App.DOMElements.importFileInput.addEventListener('change', e => App.importData(e));
+
+            // --- 其他监听器 ---
             App.DOMElements.searchInput.addEventListener('input', e => App.render.dashboard(e.target.value));
-
             App.DOMElements.dashboardSortControls.addEventListener('click', e => App.handlers.handleDashboardSortClick(e));
-
             App.DOMElements.turntableCostInput.addEventListener('change', e => { App.state.turntableCost = parseInt(e.target.value) || 0; App.saveData(); });
-            App.DOMElements.studentCardsContainer.addEventListener('click', e => App.handlers.handleCardClick(e));
-
             App.DOMElements.studentCardsContainer.addEventListener('click', e => App.handlers.handleCardClick(e));
             App.DOMElements.rewardsContainer.addEventListener('click', e => App.handlers.handleRewardCardClick(e));
             App.DOMElements.studentTableBody.addEventListener('click', e => App.handlers.handleStudentTableClick(e));
-            App.DOMElements.studentTableBody.addEventListener('click', e => App.handlers.handleStudentTableClick(e));
             App.DOMElements.studentTableHeader.addEventListener('click', e => App.handlers.handleSortClick(e));
             App.DOMElements.groupTableBody.addEventListener('click', e => App.handlers.handleGroupTableClick(e));
-            App.DOMElements.bulkGroupForm.addEventListener('submit', e => App.handlers.handleBulkGroupFormSubmit(e));
             App.DOMElements.unassignedStudentsList.addEventListener('click', e => App.handlers.handleStudentListItemClick(e, 'unassigned'));
             App.DOMElements.assignedStudentsList.addEventListener('click', e => App.handlers.handleStudentListItemClick(e, 'assigned'));
             App.DOMElements.leaderboardToggle.addEventListener('click', e => App.handlers.handleLeaderboardToggle(e));
             App.DOMElements.turntablePrizeTableBody.addEventListener('click', e => App.handlers.handleTurntablePrizeTableClick(e));
             App.DOMElements.btnPrintSummary.addEventListener('click', () => App.print.summary());
             App.DOMElements.btnPrintDetails.addEventListener('click', () => App.print.details());
-
-            document.getElementById('btn-paste-import-students').addEventListener('click', () => App.handlers.openPasteImportModal());
-            App.DOMElements.pasteImportForm.addEventListener('submit', e => App.handlers.handlePasteImportSubmit(e));
-
-
-            document.getElementById('btn-add-student-points').addEventListener('click', () => App.handlers.openStudentPointsModal());
-            App.DOMElements.studentPointsForm.addEventListener('submit', e => App.handlers.handleStudentPointsFormSubmit(e));
-
         },
 
         // --- 重构：Handlers ---
