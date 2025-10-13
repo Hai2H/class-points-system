@@ -331,6 +331,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 return { success: true, added: addedCount, skipped: skippedCount };
             },
+
+
+            undoRecord(recordIndex) {
+                const records = App.state.records;
+                if (recordIndex < 0 || recordIndex >= records.length) {
+                    return { success: false, message: '记录不存在！' };
+                }
+
+                const recordToUndo = records[recordIndex];
+
+                if (recordToUndo.undone) {
+                    return { success: false, message: '此记录已被撤回，无法重复操作。' };
+                }
+
+                // 1. 计算相反的分值
+                const pointsReversal = parseInt(recordToUndo.change) * -1;
+
+                // 2. 标记原记录为“已撤回”
+                recordToUndo.undone = true;
+
+                // 3. 调用现有的 changePoints 函数来应用分值变化，并创建一条新的“撤回”记录
+                //    这确保了学生总分和累计积分等都能正确更新
+                const reasonForUndo = `撤销操作 (原由: ${recordToUndo.reason})`;
+                App.actions.changePoints(recordToUndo.studentId, pointsReversal, reasonForUndo);
+
+                // 4. 保存数据 (changePoints 内部已调用，但为保险起见再次调用)
+                App.saveData();
+
+                return { success: true };
+            },
         },
 
         // ... (render, saveData, loadData, import/export 函数保持不变)
@@ -557,6 +587,9 @@ document.addEventListener('DOMContentLoaded', () => {
             App.DOMElements.assignedStudentsList.addEventListener('click', e => App.handlers.handleStudentListItemClick(e, 'assigned'));
             App.DOMElements.leaderboardToggle.addEventListener('click', e => App.handlers.handleLeaderboardToggle(e));
             App.DOMElements.turntablePrizeTableBody.addEventListener('click', e => App.handlers.handleTurntablePrizeTableClick(e));
+
+            document.getElementById('record-table').querySelector('tbody').addEventListener('click', e => App.handlers.handleRecordTableClick(e));
+            
             App.DOMElements.btnPrintSummary.addEventListener('click', () => App.print.summary());
             App.DOMElements.btnPrintDetails.addEventListener('click', () => App.print.details());
         },
@@ -902,6 +935,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else {
                     App.ui.showNotification(result.message, 'error');
                 }
+            },
+
+
+            handleRecordTableClick(e) {
+                if (!e.target.matches('.btn-undo-record')) return;
+
+                const recordIndex = e.target.dataset.recordIndex;
+                if (recordIndex === null) return;
+
+                App.ui.showConfirm('您确定要撤回这条积分记录吗？此操作将抵消本次积分变动。', () => {
+                    const result = App.actions.undoRecord(parseInt(recordIndex));
+                    if (result.success) {
+                        App.ui.showNotification('操作已成功撤回！');
+                        App.render(); // 重新渲染所有视图以更新数据
+                    } else {
+                        App.ui.showNotification(result.message, 'error');
+                    }
+                });
             },
 
 
@@ -1322,7 +1373,44 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         //"render.groupTable": () => { const b = App.DOMElements.groupTableBody; b.innerHTML = ''; App.state.groups.forEach(g => { const m = App.state.students.filter(s => s.group === g.id); const a = m.length ? (m.reduce((s, st) => s + st.points, 0) / m.length).toFixed(1) : 0; const tr = document.createElement('tr'); tr.dataset.id = g.id; tr.innerHTML = `<td>${g.name}</td><td>${m.length}</td><td>${a}</td><td class="actions"><button class="btn btn-primary btn-sm edit-btn">编辑</button><button class="btn btn-danger btn-sm delete-btn">删除</button></td>`; b.appendChild(tr); }); },
         "render.rewards": () => { const c = App.DOMElements.rewardsContainer; c.innerHTML = ''; if (!App.state.rewards || App.state.rewards.length === 0) { c.innerHTML = '<p>商城里还没有任何奖品，快去上架一个吧！</p>'; return; } App.state.rewards.forEach(r => { const card = document.createElement('div'); card.className = 'reward-card'; card.dataset.id = r.id; card.innerHTML = `<div class="name">${r.name}</div><div class="cost">${r.cost}</div><div class="actions"><button class="btn btn-green redeem-btn">立即兑换</button><div class="admin-actions"><span class="icon-btn edit-btn">✏️</span><span class="icon-btn delete-btn">🗑️</span></div></div>`; c.appendChild(card); }); },
-        "render.records": () => { const b = App.DOMElements.recordTableBody; b.innerHTML = ''; if (!App.state.records) return; b.innerHTML = ''; App.state.records.slice().reverse().forEach(r => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${r.time}</td><td>${r.studentName}</td><td>${r.change}</td><td>${r.reason}</td><td>${r.finalPoints}</td>`; b.appendChild(tr); }); },
+
+        // 在 App 对象内部，完整替换旧的 render.records 函数
+        "render.records": () => {
+            const b = App.DOMElements.recordTableBody;
+            b.innerHTML = '';
+            if (!App.state.records) return;
+
+            // 使用 slice().reverse() 创建一个反转后的副本进行遍历
+            const reversedRecords = App.state.records.slice().reverse();
+
+            reversedRecords.forEach((r, reversedIndex) => {
+                // 计算原始数组中的索引，这对于撤销操作至关重要
+                const originalIndex = App.state.records.length - 1 - reversedIndex;
+
+                const tr = document.createElement('tr');
+                // 如果记录被标记为已撤回，则添加 CSS 类
+                if (r.undone) {
+                    tr.classList.add('record-undone');
+                }
+
+                // 根据记录状态决定“操作”列的内容
+                const actionsHTML = r.undone
+                    ? '<span>已撤回</span>'
+                    : `<button class="btn btn-danger btn-sm btn-undo-record" data-record-index="${originalIndex}">撤回</button>`;
+
+                tr.innerHTML = `
+            <td>${r.time}</td>
+            <td>${r.studentName}</td>
+            <td>${r.change}</td>
+            <td>${r.reason}</td>
+            <td>${r.finalPoints}</td>
+            <td class="actions">${actionsHTML}</td>`;
+
+                b.appendChild(tr);
+            });
+        },
+
+        //"render.records": () => { const b = App.DOMElements.recordTableBody; b.innerHTML = ''; if (!App.state.records) return; b.innerHTML = ''; App.state.records.slice().reverse().forEach(r => { const tr = document.createElement('tr'); tr.innerHTML = `<td>${r.time}</td><td>${r.studentName}</td><td>${r.change}</td><td>${r.reason}</td><td>${r.finalPoints}</td>`; b.appendChild(tr); }); },
         "render.turntablePrizes": () => {
             const tbody = App.DOMElements.turntablePrizeTableBody;
             if (!tbody) return;

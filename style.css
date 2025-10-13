@@ -949,3 +949,16 @@ form input:focus, form select:focus {
   padding: 12px;
   font-size: 1em;
 }
+
+
+/* 在 style.css 文件末尾添加 */
+/* --- 积分记录撤回样式 --- */
+#record-table tbody tr.record-undone {
+  background-color: #f8f9fa;
+  color: #adb5bd;
+  text-decoration: line-through; /* 添加删除线 */
+}
+
+#record-table tbody tr.record-undone:hover {
+  background-color: #f1f3f5;
+}
