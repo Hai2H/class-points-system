@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             turntablePrizes: [],
             turntableCost: 10,
             dashboardSortState: { column: 'points', direction: 'desc' },
+            groupLeaderboardType: 'avg',
         },
 
         DOMElements: {
@@ -70,6 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
             exportChoiceModal: document.getElementById('export-choice-modal'),
             btnExportChoiceJson: document.getElementById('btn-export-choice-json'),
             btnExportChoiceExcel: document.getElementById('btn-export-choice-excel'),
+
+
+            groupLeaderboardList: document.getElementById('group-leaderboard-list'),
+            groupLeaderboardToggle: document.getElementById('group-leaderboard-toggle'),
         },
 
 
@@ -364,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         // ... (render, saveData, loadData, import/export 函数保持不变)
-        render() { App.render.stats(); App.render.dashboard(); App.render.leaderboard(); App.render.studentTable(); App.render.sortIndicators(); App.render.groupTable(); App.render.rewards(); App.render.records(); App.render.turntablePrizes(); App.render.dashboardSortIndicators(); },
+        render() { App.render.stats(); App.render.dashboard(); App.render.leaderboard(); App.render.studentTable(); App.render.sortIndicators(); App.render.groupTable(); App.render.groupLeaderboard(); App.render.rewards(); App.render.records(); App.render.turntablePrizes(); App.render.dashboardSortIndicators(); },
         saveData() { localStorage.setItem('classPointsData', JSON.stringify(App.state)); },
         loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; if (st.totalDeductions === undefined) st.totalDeductions = 0; /* <--- 新增此行 */ }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100, totalDeductions: 0 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80, totalDeductions: 0 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
         //loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
@@ -586,10 +591,15 @@ document.addEventListener('DOMContentLoaded', () => {
             App.DOMElements.unassignedStudentsList.addEventListener('click', e => App.handlers.handleStudentListItemClick(e, 'unassigned'));
             App.DOMElements.assignedStudentsList.addEventListener('click', e => App.handlers.handleStudentListItemClick(e, 'assigned'));
             App.DOMElements.leaderboardToggle.addEventListener('click', e => App.handlers.handleLeaderboardToggle(e));
+
+
+            App.DOMElements.groupLeaderboardToggle.addEventListener('click', e => App.handlers.handleGroupLeaderboardToggle(e));
+
+
             App.DOMElements.turntablePrizeTableBody.addEventListener('click', e => App.handlers.handleTurntablePrizeTableClick(e));
 
             document.getElementById('record-table').querySelector('tbody').addEventListener('click', e => App.handlers.handleRecordTableClick(e));
-            
+
             App.DOMElements.btnPrintSummary.addEventListener('click', () => App.print.summary());
             App.DOMElements.btnPrintDetails.addEventListener('click', () => App.print.details());
         },
@@ -910,6 +920,17 @@ document.addEventListener('DOMContentLoaded', () => {
             //initTurntable() { if (!App.DOMElements.turntableCanvas) return; if (App.turntableInstance) { App.turntableInstance.stopAnimation(false); App.turntableInstance = null; } const prizes = App.state.turntablePrizes.length > 0 ? App.state.turntablePrizes : [{ text: '谢谢参与' }]; const colors = ["#8C236E", "#2C638C", "#3C8C4D", "#D99E3D", "#D9523D", "#8C2323", "#45238C", "#238C80"]; App.turntableInstance = new Winwheel({ 'canvasId': 'turntable-canvas', 'numSegments': prizes.length, 'responsive': true, 'segments': prizes.map((p, i) => ({ ...p, fillStyle: colors[i % colors.length], textFillStyle: '#ffffff' })), 'animation': { 'type': 'spinToStop', 'duration': 8, 'spins': 10, 'callbackFinished': App.handlers.spinFinished, } }); },
             handleSortClick: (e) => { const h = e.target.closest('th.sortable'); if (!h) return; const sKey = h.dataset.sort; const cSort = App.state.sortState; let nDir = 'asc'; if (cSort.column === sKey) { nDir = cSort.direction === 'asc' ? 'desc' : 'asc' } App.state.sortState = { column: sKey, direction: nDir }; App.render() },
             handleLeaderboardToggle: (e) => { const b = e.target.closest('.toggle-btn'); if (!b) return; const t = b.dataset.type; if (App.state.leaderboardType !== t) { App.state.leaderboardType = t; App.render(); } },
+            handleGroupLeaderboardToggle: (e) => {
+                const btn = e.target.closest('.toggle-btn');
+                if (!btn) return;
+                const type = btn.dataset.type;
+                if (App.state.groupLeaderboardType !== type) {
+                    App.state.groupLeaderboardType = type;
+                    App.render.groupLeaderboard(); // 只重新渲染小组排行榜
+                }
+            },
+
+
 
 
             openPasteImportModal() {
@@ -1436,6 +1457,45 @@ document.addEventListener('DOMContentLoaded', () => {
                     select.add(option);
                 });
         },
+
+        "render.groupLeaderboard": () => {
+            const listElement = App.DOMElements.groupLeaderboardList;
+            if (!listElement) return;
+
+            const type = App.state.groupLeaderboardType;
+            const toggle = App.DOMElements.groupLeaderboardToggle;
+            toggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+
+            document.getElementById('group-leaderboard-title').innerText =
+                type === 'avg' ? '🏆 小组人均分排行' : '🏆 小组总分排行';
+
+            const groupScores = App.state.groups.map(group => {
+                const members = App.state.students.filter(s => s.group === group.id);
+                const totalPoints = members.reduce((sum, member) => sum + member.points, 0);
+                const avgPoints = members.length > 0 ? (totalPoints / members.length) : 0;
+                return {
+                    name: group.name,
+                    score: type === 'avg' ? avgPoints : totalPoints,
+                };
+            });
+
+            groupScores.sort((a, b) => b.score - a.score);
+
+            listElement.innerHTML = '';
+            if (groupScores.length === 0) {
+                listElement.innerHTML = '<li>暂无小组数据</li>';
+                return;
+            }
+
+            groupScores.forEach((group, index) => {
+                const li = document.createElement('li');
+                const scoreDisplay = type === 'avg' ? group.score.toFixed(1) : group.score;
+                li.innerHTML = `<span class="rank">${index + 1}.</span><span class="name">${group.name}</span><span class="points">${scoreDisplay} 分</span>`;
+                listElement.appendChild(li);
+            });
+        },
+
+
         "render.dashboardSortIndicators": () => {
             const { column, direction } = App.state.dashboardSortState;
             const buttons = App.DOMElements.dashboardSortControls.querySelectorAll('.sort-btn');

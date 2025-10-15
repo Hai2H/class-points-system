@@ -112,21 +112,40 @@
       </div>
     </div>
 
+
     <div id="view-group-management">
       <div class="page-header">
-        <h2>小组管理</h2><button class="btn btn-primary" id="btn-add-group">＋ 新增小组</button>
+        <h2>小组管理</h2>
+        <button class="btn btn-primary" id="btn-add-group">＋ 新增小组</button>
       </div>
-      <table class="styled-table" id="group-table">
-        <thead>
-          <tr>
-            <th>小组名称</th>
-            <th>成员数量</th>
-            <th>人均积分</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+
+      <div class="group-management-layout">
+        <div class="group-table-wrapper">
+          <table class="styled-table" id="group-table">
+            <thead>
+              <tr>
+                <th>小组名称</th>
+                <th>成员数量</th>
+                <th>人均积分</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="leaderboard-container">
+          <div class="leaderboard-header">
+            <h3 id="group-leaderboard-title">🏆 小组积分排行榜</h3>
+          </div>
+          <div class="leaderboard-toggle" id="group-leaderboard-toggle">
+            <button class="toggle-btn active" data-type="avg">人均分</button>
+            <button class="toggle-btn" data-type="total">总分</button>
+          </div>
+          <ol id="group-leaderboard-list">
+          </ol>
+        </div>
+      </div>
     </div>
 
     <div id="view-student-management">
@@ -168,7 +187,7 @@
       </div>
       <div class="turntable-main-layout">
         <div class="turntable-wrapper">
-          <canvas id="turntable-canvas" width="450" height="450"></canvas>
+          <canvas id="turntable-canvas" width="650" height="650"></canvas>
           <div class="turntable-pointer"></div>
           <button class="btn btn-primary btn-spin" id="btn-spin">开始转动</button>
         </div>

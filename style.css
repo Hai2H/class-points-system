@@ -345,13 +345,17 @@ form input:focus, form select:focus {
   padding-bottom: 15px;
 }
 
-#leaderboard-list {
+/* --- 修改点: 同时选中两个排行榜的 ol 元素 --- */
+#leaderboard-list,
+#group-leaderboard-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-#leaderboard-list li {
+/* --- 修改点: 同时选中两个排行榜的 li 元素 --- */
+#leaderboard-list li,
+#group-leaderboard-list li {
   display: flex;
   align-items: center;
   gap: 15px; /* 设置列之间的统一间距 */
@@ -360,12 +364,15 @@ form input:focus, form select:focus {
   font-size: 1.05em;
 }
 
-#leaderboard-list li:last-child {
+/* --- 修改点: 同时选中两个排行榜的最后一个 li 元素 --- */
+#leaderboard-list li:last-child,
+#group-leaderboard-list li:last-child {
   border-bottom: none;
 }
 
-/* 第1列：排名 */
-#leaderboard-list .rank {
+/* --- 修改点: 同时选中两个排行榜的 .rank 元素 --- */
+#leaderboard-list .rank,
+#group-leaderboard-list .rank {
   flex-shrink: 0; /* 防止被压缩 */
   font-weight: bold;
   font-size: 1.1em;
@@ -374,8 +381,9 @@ form input:focus, form select:focus {
   text-align: right;
 }
 
-/* 第2列：名字 */
-#leaderboard-list .name {
+/* --- 修改点: 同时选中两个排行榜的 .name 元素 --- */
+#leaderboard-list .name,
+#group-leaderboard-list .name {
   flex-grow: 1; /* 关键！让名字占据所有剩余空间，将积分推到最右边 */
   font-weight: 500;
   white-space: nowrap; /* 防止名字换行 */
@@ -383,17 +391,18 @@ form input:focus, form select:focus {
   text-overflow: ellipsis; /* 超出部分显示... */
 }
 
-/* 第3列：积分 */
-#leaderboard-list .points {
+/* --- 修改点: 同时选中两个排行榜的 .points 元素 --- */
+#leaderboard-list .points,
+#group-leaderboard-list .points {
   flex-shrink: 0; /* 防止被压缩 */
   font-weight: bold;
   color: var(--primary-color);
 }
 
-/* 为前三名的 .rank 添加特殊颜色 */
-#leaderboard-list li:nth-child(1) .rank { color: var(--gold); }
-#leaderboard-list li:nth-child(2) .rank { color: #a1a7ac; } /* 银色 */
-#leaderboard-list li:nth-child(3) .rank { color: #cd7f32; } /* 铜色 */
+/* --- 修改点: 同时为两个排行榜的前三名 .rank 添加特殊颜色 --- */
+#leaderboard-list li:nth-child(1) .rank, #group-leaderboard-list li:nth-child(1) .rank { color: var(--gold); }
+#leaderboard-list li:nth-child(2) .rank, #group-leaderboard-list li:nth-child(2) .rank { color: #a1a7ac; } /* 银色 */
+#leaderboard-list li:nth-child(3) .rank, #group-leaderboard-list li:nth-child(3) .rank { color: #cd7f32; } /* 铜色 */
 
 @media (max-width: 1200px) {
   .dashboard-layout {
@@ -489,15 +498,19 @@ form input:focus, form select:focus {
 /* --- 幸运大转盘样式 (新增) --- */
 .turntable-main-layout {
   display: grid;
-  grid-template-columns: 480px 1fr;
+  /* --- ↓↓↓ 修改点 ↓↓↓ --- */
+  /* 将原来的固定宽度改为比例宽度，让左栏占据2份空间，右栏占据1份 */
+  grid-template-columns: 2fr 1fr; 
   gap: 30px;
   align-items: start;
 }
 
 .turntable-wrapper {
   position: relative;
-  width: 450px;
-  height: 450px;
+  /* --- ↓↓↓ 修改点 ↓↓↓ --- */
+  /* 将包装器的尺寸与新的canvas尺寸保持一致 */
+  width: 650px;
+  height: 650px;
   margin: 0 auto;
 }
 
@@ -961,4 +974,12 @@ form input:focus, form select:focus {
 
 #record-table tbody tr.record-undone:hover {
   background-color: #f1f3f5;
+}
+
+
+.group-management-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* 表格占2/3，排行榜占1/3 */
+  gap: 30px;
+  align-items: start;
 }
