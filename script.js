@@ -474,32 +474,46 @@ document.addEventListener('DOMContentLoaded', () => {
                             return;
                         }
 
-                        const originalRowCount = excelData.length; // 新增：记录原始行数
+                        // --- 核心修改开始 ---
+                        const newStudents = [];
+                        const groupsMap = new Map(); // 使用Map来存储和去重小组信息
 
-                        // 关键修改：在映射前，先筛选掉name字段为空或只有空格的行
-                        const newStudents = excelData
-                            .filter(st => st.name && String(st.name).trim() !== '')
-                            .map(st => ({
-                                id: String(st.id || ''),
-                                name: String(st.name).trim(), // 顺便去除姓名两端的空格
-                                group: String(st.group || ''),
-                                points: parseInt(st.points || 0),
-                                totalEarnedPoints: parseInt(st.totalEarnedPoints || st.points || 0)
-                            }));
+                        // 1. 遍历Excel数据，同时提取学生和小组信息
+                        excelData.forEach(row => {
+                            // 只处理包含有效姓名的行
+                            if (row.name && String(row.name).trim() !== '') {
+                                newStudents.push({
+                                    id: String(row.id || App.actions.generateId()),
+                                    name: String(row.name).trim(),
+                                    group: String(row.group || ''),
+                                    points: parseInt(row.points || 0),
+                                    totalEarnedPoints: parseInt(row.totalEarnedPoints || row.points || 0),
+                                    totalDeductions: parseInt(row.totalDeductions || 0)
+                                });
+                            }
 
-                        const importedRowCount = newStudents.length;
-                        const skippedRowCount = originalRowCount - importedRowCount;
+                            // 如果行中有小组ID和小组名，则更新到Map中
+                            // 这会覆盖旧的名称，实现“更新”效果
+                            if (row.group && row.groupName) {
+                                groupsMap.set(String(row.group), String(row.groupName));
+                            }
+                        });
 
+                        // 2. 将Map转换回小组数组格式
+                        const newGroups = [];
+                        groupsMap.forEach((name, id) => {
+                            newGroups.push({ id, name });
+                        });
+
+                        // 3. 同时更新学生和小组列表
                         App.state.students = newStudents;
+                        App.state.groups = newGroups;
+                        // --- 核心修改结束 ---
+
                         App.saveData();
                         App.render();
 
-                        // 新增：构建更详细的成功提示信息
-                        let notificationMessage = `成功导入 ${importedRowCount} 名学生！`;
-                        if (skippedRowCount > 0) {
-                            notificationMessage += ` (已跳过 ${skippedRowCount} 行姓名为空的记录)`;
-                        }
-                        App.ui.showNotification(notificationMessage);
+                        App.ui.showNotification(`成功从Excel导入 ${newStudents.length} 名学生和 ${newGroups.length} 个小组的信息！`);
 
                     } catch (err) {
                         console.error("Excel Import Error:", err);
