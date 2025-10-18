@@ -983,3 +983,11 @@ form input:focus, form select:focus {
   gap: 30px;
   align-items: start;
 }
+
+
+/* --- 修复：个人积分记录弹窗滚动样式 --- */
+.record-table-container {
+  max-height: 60vh; /* 设定最大高度为视窗高度的60%，可以根据喜好调整 */
+  overflow-y: auto; /* 核心：当内容超出最大高度时，自动显示垂直滚动条 */
+  margin-top: 15px; /* 与标题保持一些间距 */
+}

@@ -345,25 +345,53 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 const recordToUndo = records[recordIndex];
-
                 if (recordToUndo.undone) {
                     return { success: false, message: '此记录已被撤回，无法重复操作。' };
                 }
 
-                // 1. 计算相反的分值
-                const pointsReversal = parseInt(recordToUndo.change) * -1;
+                const student = App.state.students.find(s => s.id === recordToUndo.studentId);
+                if (!student) {
+                    return { success: false, message: '无法找到该记录对应的学生。' };
+                }
 
-                // 2. 标记原记录为“已撤回”
+                // --- ↓↓↓ 核心修正逻辑开始 ↓↓↓ ---
+
+                // 1. 获取原始分值和反向分值
+                const originalChange = parseInt(recordToUndo.change);
+                const pointsReversal = originalChange * -1;
+
+                // 2. 更新学生的【实时积分】
+                student.points += pointsReversal;
+
+                // 3. 根据原始操作的类型，精确修正【累计积分】或【扣分积分】
+                if (originalChange > 0) {
+                    // 如果原始操作是“加分”，则在“累计积分”中减去相应的值
+                    student.totalEarnedPoints = (student.totalEarnedPoints || 0) - originalChange;
+                } else if (originalChange < 0) {
+                    // 如果原始操作是“扣分”，需判断它当初是否被计入了“扣分积分”
+                    const originalReason = recordToUndo.reason || '';
+                    if (!originalReason.includes('兑换') && !originalReason.includes('抽奖')) {
+                        // 只有非消耗性的扣分才会被计入，因此撤回时也只减去这部分
+                        student.totalDeductions = (student.totalDeductions || 0) - Math.abs(originalChange);
+                    }
+                }
+
+                // 4. 将原始记录标记为“已撤回”
                 recordToUndo.undone = true;
 
-                // 3. 调用现有的 changePoints 函数来应用分值变化，并创建一条新的“撤回”记录
-                //    这确保了学生总分和累计积分等都能正确更新
-                const reasonForUndo = `撤销操作 (原由: ${recordToUndo.reason})`;
-                App.actions.changePoints(recordToUndo.studentId, pointsReversal, reasonForUndo);
+                // 5. 为本次“撤回”操作本身创建一条新的日志，用于追溯
+                App.state.records.push({
+                    time: new Date().toLocaleString(),
+                    studentId: student.id,
+                    studentName: student.name,
+                    change: pointsReversal > 0 ? `+${pointsReversal}` : pointsReversal,
+                    reason: `撤销操作 (原由: ${recordToUndo.reason})`,
+                    finalPoints: student.points
+                });
 
-                // 4. 保存数据 (changePoints 内部已调用，但为保险起见再次调用)
+                // --- 核心修正逻辑结束 ---
+
                 App.saveData();
-
                 return { success: true };
             },
         },
