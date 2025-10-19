@@ -149,11 +149,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 App.saveData();
                 return { success: true };
             },
-            updateStudent(id, name, group) {
-                const student = App.state.students.find(s => s.id === id);
+            updateStudent(originalId, newId, name, group) {
+                // 检查新的ID是否与系统中其他学生冲突
+                if (originalId !== newId && App.state.students.some(s => s.id === newId)) {
+                    return { success: false, message: '错误：新的学生ID "' + newId + '" 已被占用！' };
+                }
+
+                const student = App.state.students.find(s => s.id === originalId);
                 if (student) {
+                    // 更新学生信息
+                    student.id = newId;
                     student.name = name;
                     student.group = group;
+
+                    // 关键一步：同步更新所有相关积分记录中的学生ID
+                    App.state.records.forEach(r => {
+                        if (r.studentId === originalId) {
+                            r.studentId = newId;
+                        }
+                    });
+
                     App.saveData();
                     return { success: true };
                 }
@@ -814,26 +829,26 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             handleStudentFormSubmit: (e) => {
                 e.preventDefault();
-                const internalId = App.DOMElements.studentIdInput.value; // 用于判断是新增还是编辑
-                const studentId = App.DOMElements.studentIdDisplayInput.value.trim(); // 获取用户输入的ID
+                const internalId = App.DOMElements.studentIdInput.value; // 这是隐藏的、原始的ID
+                const newStudentId = App.DOMElements.studentIdDisplayInput.value.trim(); // 这是用户可能修改过的、新的ID
                 const name = App.DOMElements.studentNameInput.value.trim();
                 const group = App.DOMElements.studentGroupSelect.value;
 
-                if (!studentId || !name) { // <--- 修改点：确保ID和姓名都已输入
+                if (!newStudentId || !name) {
                     App.ui.showNotification('请输入学生ID和姓名！', 'error');
                     return;
                 }
 
                 let result;
                 if (internalId) { // 这是编辑模式
-                    result = App.actions.updateStudent(internalId, name, group);
-                } else { // 这是新增模式
-                    // 检查ID是否已存在
-                    if (App.state.students.some(s => s.id === studentId)) {
-                        App.ui.showNotification('错误：学生ID ' + studentId + ' 已存在！', 'error');
+                    // 调用我们更新过的 updateStudent Action
+                    result = App.actions.updateStudent(internalId, newStudentId, name, group);
+                } else { // 这是新增模式 (逻辑不变)
+                    if (App.state.students.some(s => s.id === newStudentId)) {
+                        App.ui.showNotification('错误：学生ID ' + newStudentId + ' 已存在！', 'error');
                         return;
                     }
-                    result = App.actions.addStudent(studentId, name, group);
+                    result = App.actions.addStudent(newStudentId, name, group);
                 }
 
                 if (result.success) {
@@ -895,7 +910,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (id) {
                     const t = App.state.students.find(st => st.id === id);
                     idDisplayInput.value = t.id; // <--- 新增
-                    idDisplayInput.readOnly = true; // <--- 新增 (编辑时ID只读)
+                    //idDisplayInput.readOnly = true; // <--- 新增 (编辑时ID只读)
                     App.DOMElements.studentNameInput.value = t.name;
                     s.value = t.group;
                     App.DOMElements.studentModalTitle.innerText = '编辑学生'
