@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
             gridView: document.getElementById('grid-view'),
             groupListView: document.getElementById('group-list-view'),
             groupSectionsContainer: document.getElementById('group-sections-container'),
+            sidebar: document.getElementById('sidebar'),
         },
 
 
@@ -736,6 +737,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         App.ui.showNotification('学生已删除。');
                     });
                 }
+            });
+            
+            // 新增：导航栏收缩按钮
+            document.getElementById('nav-collapse-btn').addEventListener('click', () => {
+                document.body.classList.toggle('nav-collapsed');
             });
 
 
