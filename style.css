@@ -320,12 +320,223 @@ form input:focus, form select:focus {
 
 /* --- 仪表盘布局 --- */
 .dashboard-layout {
-  display: grid;
+  display: none; /* 默认隐藏 */
   grid-template-columns: 2fr 1fr;
   gap: 25px;
   align-items: start;
 }
+
+.dashboard-layout.active {
+  display: grid;
+}
+
 .student-cards-grid-wrapper { min-width: 0; }
+
+/* --- 视图模式切换按钮 --- */
+.view-mode-toggle {
+  display: flex;
+  gap: 5px;
+  background: #f1f3f5;
+  border-radius: 9px;
+  padding: 5px;
+  border: 1px solid var(--border-color);
+}
+
+.view-mode-toggle .toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 0.9em;
+}
+
+/* --- 分组列表视图样式 --- */
+.group-list-view {
+  display: none; /* 默认隐藏 */
+  /* 去掉 grid-template-columns，让内容占满全宽 */
+}
+
+.group-list-view.active {
+  display: block;
+}
+
+/* 隐藏分组列表视图中的排行榜 */
+#group-list-view .leaderboard-container {
+  display: none;
+}
+
+.group-sections-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.group-section {
+  background: var(--card-background);
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-md);
+}
+
+.group-section-header {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.group-section-header h3 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.group-badge {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: var(--primary-color);
+  padding: 8px 15px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+/* 未分组样式 */
+.group-section-header.unassigned .group-badge {
+  background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+  box-shadow: 0 2px 8px rgba(149, 165, 166, 0.3);
+}
+
+.group-stats {
+  font-size: 0.95em;
+  color: var(--sub-font-color);
+  font-weight: 500;
+}
+
+.group-list-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.group-student-card {
+  background: var(--card-background);
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: var(--shadow-sm);
+}
+
+.group-student-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+}
+
+.group-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.group-card-top .name {
+  font-size: 1em;
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.student-id {
+  font-size: 0.75em;
+  color: var(--sub-font-color);
+  background: #f1f3f5;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.group-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 0;
+}
+
+.stat-item-small {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85em;
+  padding: 3px 0;
+}
+
+.stat-item-small .stat-label {
+  color: var(--sub-font-color);
+}
+
+.stat-item-small .stat-value {
+  font-weight: 600;
+  color: var(--font-color);
+}
+
+.group-card-actions {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-color);
+  gap: 4px;
+}
+
+/* 成就徽章在分组卡片中的样式 */
+.group-student-card .achievement-title {
+  font-size: 0.65em;
+  padding: 2px 6px;
+}
+
+/* 图标按钮在分组卡片中稍小一点 */
+.group-card-actions .icon-btn {
+  font-size: 1em;
+  padding: 5px 8px;
+}
+
+/* 成就徽章辉光效果（与卡片视图一致） */
+.group-student-card.tier-rookie:hover { box-shadow: 0 0 20px rgba(46, 204, 113, 0.5); }
+.group-student-card.tier-expert:hover { box-shadow: 0 0 20px rgba(52, 152, 219, 0.5); }
+.group-student-card.tier-master:hover { box-shadow: 0 0 20px rgba(155, 89, 182, 0.5); }
+.group-student-card.tier-king:hover { box-shadow: 0 0 20px rgba(243, 156, 18, 0.6); }
+.group-student-card.tier-god:hover { box-shadow: 0 0 25px rgba(231, 76, 60, 0.7); }
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .group-section-header h3 {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .group-list-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .group-card-actions {
+    flex-wrap: wrap;
+  }
+  
+  .stat-item-small {
+    font-size: 0.8em;
+  }
+}
 
 /* --- 排行榜样式  --- */
 .leaderboard-container {

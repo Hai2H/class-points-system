@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
             turntableCost: 10,
             dashboardSortState: { column: 'points', direction: 'desc' },
             groupLeaderboardType: 'avg',
+            viewMode: 'grid', // 新增：视图模式 'grid' 或 'group-list'
         },
 
         DOMElements: {
@@ -75,6 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             groupLeaderboardList: document.getElementById('group-leaderboard-list'),
             groupLeaderboardToggle: document.getElementById('group-leaderboard-toggle'),
+            
+            // 新增的视图模式切换元素
+            viewModeToggle: document.querySelector('.view-mode-toggle'),
+            gridView: document.getElementById('grid-view'),
+            groupListView: document.getElementById('group-list-view'),
+            groupSectionsContainer: document.getElementById('group-sections-container'),
         },
 
 
@@ -95,8 +102,16 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!App.state.dashboardSortState) {
                 App.state.dashboardSortState = { column: 'points', direction: 'desc' };
             }
+            if (!App.state.viewMode) {
+                App.state.viewMode = 'grid';
+            }
             App.setupEventListeners();
             App.render();
+            
+            // 确保初始视图正确显示
+            if (App.DOMElements.gridView && App.state.viewMode === 'grid') {
+                App.DOMElements.gridView.classList.add('active');
+            }
         },
 
 
@@ -412,9 +427,42 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
         // ... (render, saveData, loadData, import/export 函数保持不变)
-        render() { App.render.stats(); App.render.dashboard(); App.render.leaderboard(); App.render.studentTable(); App.render.sortIndicators(); App.render.groupTable(); App.render.groupLeaderboard(); App.render.rewards(); App.render.records(); App.render.turntablePrizes(); App.render.dashboardSortIndicators(); },
+        render() { 
+            App.render.stats(); 
+            App.render.dashboard(); 
+            App.render.leaderboard(); 
+            App.render.studentTable(); 
+            App.render.sortIndicators(); 
+            App.render.groupTable(); 
+            App.render.groupLeaderboard(); 
+            App.render.rewards(); 
+            App.render.records(); 
+            App.render.turntablePrizes(); 
+            App.render.dashboardSortIndicators(); 
+            App.render.viewMode(); // 新增：渲染视图模式
+        },
         saveData() { localStorage.setItem('classPointsData', JSON.stringify(App.state)); },
-        loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; if (st.totalDeductions === undefined) st.totalDeductions = 0; /* <--- 新增此行 */ }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100, totalDeductions: 0 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80, totalDeductions: 0 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
+        loadData() { 
+            const d = localStorage.getItem('classPointsData'); 
+            const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10, viewMode: 'grid', dashboardSortState: { column: 'points', direction: 'desc' }, groupLeaderboardType: 'avg' }; 
+            if (d) { 
+                const l = JSON.parse(d); 
+                if (l.students) { 
+                    l.students.forEach(st => { 
+                        if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; 
+                        if (st.totalDeductions === undefined) st.totalDeductions = 0;
+                    }); 
+                } 
+                App.state = { ...s, ...l }; 
+            } else { 
+                let sG1 = App.actions.generateId(); 
+                let sG2 = App.actions.generateId(); 
+                App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; 
+                App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100, totalDeductions: 0 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80, totalDeductions: 0 }]; 
+                App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; 
+                App.saveData(); 
+            }
+        },
         //loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
         //exportData: () => { const d = JSON.stringify(App.state, null, 2); const b = new Blob([d], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `class_data_${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(u) },
 
@@ -637,7 +685,14 @@ document.addEventListener('DOMContentLoaded', () => {
             App.DOMElements.importFileInput.addEventListener('change', e => App.importData(e));
 
             // --- 其他监听器 ---
-            App.DOMElements.searchInput.addEventListener('input', e => App.render.dashboard(e.target.value));
+            App.DOMElements.searchInput.addEventListener('input', e => {
+                const searchTerm = e.target.value;
+                if (App.state.viewMode === 'grid') {
+                    App.render.dashboard(searchTerm);
+                } else {
+                    App.render.groupList(searchTerm);
+                }
+            });
             App.DOMElements.dashboardSortControls.addEventListener('click', e => App.handlers.handleDashboardSortClick(e));
             App.DOMElements.turntableCostInput.addEventListener('change', e => { App.state.turntableCost = parseInt(e.target.value) || 0; App.saveData(); });
             App.DOMElements.studentCardsContainer.addEventListener('click', e => App.handlers.handleCardClick(e));
@@ -648,6 +703,40 @@ document.addEventListener('DOMContentLoaded', () => {
             App.DOMElements.unassignedStudentsList.addEventListener('click', e => App.handlers.handleStudentListItemClick(e, 'unassigned'));
             App.DOMElements.assignedStudentsList.addEventListener('click', e => App.handlers.handleStudentListItemClick(e, 'assigned'));
             App.DOMElements.leaderboardToggle.addEventListener('click', e => App.handlers.handleLeaderboardToggle(e));
+            
+            // 新增：分组列表视图的排行榜切换
+            const leaderboardToggleList = document.querySelector('#leaderboard-toggle-list');
+            if (leaderboardToggleList) {
+                leaderboardToggleList.addEventListener('click', e => App.handlers.handleLeaderboardToggle(e));
+            }
+            
+            // 新增：视图模式切换
+            App.DOMElements.viewModeToggle.addEventListener('click', e => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                const viewMode = btn.dataset.viewMode;
+                if (viewMode && App.state.viewMode !== viewMode) {
+                    App.state.viewMode = viewMode;
+                    App.render();
+                }
+            });
+            
+            // 新增：分组列表视图的事件委托（因为列表是动态生成的）
+            App.DOMElements.groupSectionsContainer.addEventListener('click', e => {
+                const card = e.target.closest('.group-student-card');
+                if (!card) return;
+                const studentId = card.dataset.id;
+                if (e.target.matches('.points-btn')) App.handlers.openPointsModal(studentId);
+                if (e.target.matches('.record-btn')) App.handlers.openIndividualRecordModal(studentId);
+                if (e.target.matches('.edit-btn')) App.handlers.openStudentModal(studentId);
+                if (e.target.matches('.delete-btn')) {
+                    App.ui.showConfirm('确认删除此学生吗？', () => {
+                        App.actions.deleteStudent(studentId);
+                        App.render();
+                        App.ui.showNotification('学生已删除。');
+                    });
+                }
+            });
 
 
             App.DOMElements.groupLeaderboardToggle.addEventListener('click', e => App.handlers.handleGroupLeaderboardToggle(e));
@@ -976,7 +1065,23 @@ document.addEventListener('DOMContentLoaded', () => {
             // ===========================================================================================
             //initTurntable() { if (!App.DOMElements.turntableCanvas) return; if (App.turntableInstance) { App.turntableInstance.stopAnimation(false); App.turntableInstance = null; } const prizes = App.state.turntablePrizes.length > 0 ? App.state.turntablePrizes : [{ text: '谢谢参与' }]; const colors = ["#8C236E", "#2C638C", "#3C8C4D", "#D99E3D", "#D9523D", "#8C2323", "#45238C", "#238C80"]; App.turntableInstance = new Winwheel({ 'canvasId': 'turntable-canvas', 'numSegments': prizes.length, 'responsive': true, 'segments': prizes.map((p, i) => ({ ...p, fillStyle: colors[i % colors.length], textFillStyle: '#ffffff' })), 'animation': { 'type': 'spinToStop', 'duration': 8, 'spins': 10, 'callbackFinished': App.handlers.spinFinished, } }); },
             handleSortClick: (e) => { const h = e.target.closest('th.sortable'); if (!h) return; const sKey = h.dataset.sort; const cSort = App.state.sortState; let nDir = 'asc'; if (cSort.column === sKey) { nDir = cSort.direction === 'asc' ? 'desc' : 'asc' } App.state.sortState = { column: sKey, direction: nDir }; App.render() },
-            handleLeaderboardToggle: (e) => { const b = e.target.closest('.toggle-btn'); if (!b) return; const t = b.dataset.type; if (App.state.leaderboardType !== t) { App.state.leaderboardType = t; App.render(); } },
+            handleLeaderboardToggle: (e) => { 
+                const b = e.target.closest('.toggle-btn'); 
+                if (!b) return; 
+                const t = b.dataset.type; 
+                if (App.state.leaderboardType !== t) { 
+                    App.state.leaderboardType = t; 
+                    
+                    // 更新所有排行榜切换按钮
+                    document.querySelectorAll('.leaderboard-toggle').forEach(toggle => {
+                        toggle.querySelectorAll('.toggle-btn').forEach(btn => {
+                            btn.classList.toggle('active', btn.dataset.type === t);
+                        });
+                    });
+                    
+                    App.render.leaderboard(); 
+                } 
+            },
             handleGroupLeaderboardToggle: (e) => {
                 const btn = e.target.closest('.toggle-btn');
                 if (!btn) return;
@@ -1259,12 +1364,12 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         "render.stats": () => { const sc = App.state.students.length; const tp = App.state.students.reduce((s, st) => s + st.points, 0); App.DOMElements.statStudentCount.innerText = sc; App.DOMElements.statGroupCount.innerText = App.state.groups.length; App.DOMElements.statTotalPoints.innerText = tp; App.DOMElements.statAvgPoints.innerText = sc ? (tp / sc).toFixed(1) : 0; },
 
-        "render.dashboard": (st = '') => {
+        "render.dashboard": (searchTerm = '') => {
             const c = App.DOMElements.studentCardsContainer;
             c.innerHTML = '';
 
             // 1. 先按搜索词过滤
-            let studentsToRender = App.state.students.filter(s => s.name.toLowerCase().includes(st.toLowerCase()));
+            let studentsToRender = App.state.students.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
 
             if (studentsToRender.length === 0) {
                 c.innerHTML = '<p>没有找到符合条件的学生。</p>';
@@ -1348,12 +1453,22 @@ document.addEventListener('DOMContentLoaded', () => {
         //"render.dashboard": (st = '') => { const c = App.DOMElements.studentCardsContainer; c.innerHTML = ''; const f = App.state.students.filter(s => s.name.toLowerCase().includes(st.toLowerCase())); if (f.length === 0) { c.innerHTML = '<p>没有找到符合条件的学生。</p>'; return; } f.forEach(s => { const card = document.createElement('div'); card.className = 'student-card'; card.dataset.id = s.id; const g = App.state.groups.find(g => g.id === s.group)?.name || '未分组'; card.innerHTML = `<div class="card-header"><span class="name">${s.name}</span><span class="group">${g}</span></div><div class="card-body"><div class="label">当前积分</div><div class="points">${s.points}</div></div><div class="card-actions"><span class="icon-btn points-btn" title="调整积分">➕➖</span><div class="card-admin-icons"><span class="icon-btn edit-btn" title="编辑学生">✏️</span><span class="icon-btn delete-btn" title="删除学生">🗑️</span></div></div>`; c.appendChild(card); }); },
         // ...
         "render.leaderboard": () => {
-            const listElement = App.DOMElements.leaderboardList;
-            if (!listElement) return;
+            // 渲染到所有排行榜容器（网格视图和分组列表视图）
+            const listElements = [
+                document.getElementById('leaderboard-list'),
+                document.getElementById('leaderboard-list-list')
+            ].filter(el => el);
+            
+            if (listElements.length === 0) return;
 
             const type = App.state.leaderboardType;
-            const titleElement = App.DOMElements.leaderboardTitle;
-            App.DOMElements.leaderboardToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.type === type));
+            
+            // 更新所有排行榜切换按钮的状态
+            document.querySelectorAll('.leaderboard-toggle').forEach(toggle => {
+                toggle.querySelectorAll('.toggle-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.type === type);
+                });
+            });
 
             let title = '';
             let sortProperty = '';
@@ -1380,23 +1495,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     break;
             }
 
-            titleElement.innerText = title;
+            // 更新所有标题
+            document.querySelectorAll('#leaderboard-title, #leaderboard-title-list').forEach(titleEl => {
+                if (titleEl) titleEl.innerText = title;
+            });
 
             // 根据所选属性对学生列表进行降序排序
             studentsToList.sort((a, b) => (b[sortProperty] || 0) - (a[sortProperty] || 0));
 
-            listElement.innerHTML = ''; // 清空旧列表
+            // 渲染到所有排行榜列表容器
+            listElements.forEach(listElement => {
+                listElement.innerHTML = ''; // 清空旧列表
 
-            if (studentsToList.length === 0) {
-                listElement.innerHTML = '<li>暂无相关数据</li>';
-                return;
-            }
+                if (studentsToList.length === 0) {
+                    listElement.innerHTML = '<li>暂无相关数据</li>';
+                    return;
+                }
 
-            studentsToList.forEach((student, index) => {
-                const li = document.createElement('li');
-                const points = student[sortProperty] || 0;
-                li.innerHTML = `<span class="rank">${index + 1}.</span><span class="name">${student.name}</span><span class="points">${points} ${unit}</span>`;
-                listElement.appendChild(li);
+                studentsToList.forEach((student, index) => {
+                    const li = document.createElement('li');
+                    const points = student[sortProperty] || 0;
+                    li.innerHTML = `<span class="rank">${index + 1}.</span><span class="name">${student.name}</span><span class="points">${points} ${unit}</span>`;
+                    listElement.appendChild(li);
+                });
             });
         },
         //"render.leaderboard": () => { const l = App.DOMElements.leaderboardList; if (!l) return; const t = App.state.leaderboardType; App.DOMElements.leaderboardTitle.innerText = t === 'realtime' ? '🏆 实时积分排行榜' : '🏆 累计积分排行榜'; App.DOMElements.leaderboardToggle.querySelectorAll('.toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.type === t)); const c = [...App.state.students]; const sP = t === 'realtime' ? 'points' : 'totalEarnedPoints'; c.sort((a, b) => (b[sP] || 0) - (a[sP] || 0)); l.innerHTML = ''; const top = c.slice(0, App.state.students.length); if (top.length === 0) { l.innerHTML = '<li>暂无学生数据</li>'; return; } top.forEach((s, i) => { const li = document.createElement('li'); li.innerHTML = `<span class="rank">${i + 1}.</span><span class="name">${s.name}</span><span class="points">${s[sP] || 0} 积分</span>`; l.appendChild(li); }); },
@@ -1565,6 +1686,128 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.classList.add('active');
                     if (indicator) indicator.textContent = direction === 'asc' ? ' ▲' : ' ▼';
                 }
+            });
+        },
+        
+        // 新增：渲染视图模式切换
+        "render.viewMode": () => {
+            const { viewMode } = App.state;
+            const buttons = App.DOMElements.viewModeToggle ? App.DOMElements.viewModeToggle.querySelectorAll('.toggle-btn') : [];
+            
+            // 切换按钮状态
+            buttons.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.viewMode === viewMode);
+            });
+            
+            // 切换视图显示
+            if (!App.DOMElements.gridView || !App.DOMElements.groupListView) return;
+            
+            if (viewMode === 'grid') {
+                App.DOMElements.gridView.classList.add('active');
+                App.DOMElements.groupListView.classList.remove('active');
+            } else {
+                App.DOMElements.gridView.classList.remove('active');
+                App.DOMElements.groupListView.classList.add('active');
+                // 渲染分组列表（使用搜索框的值）
+                const searchTerm = App.DOMElements.searchInput ? App.DOMElements.searchInput.value : '';
+                App.render.groupList(searchTerm);
+            }
+            
+            // 确保排行榜在两种视图下都能正确渲染
+            App.render.leaderboard();
+        },
+        
+        // 新增：渲染分组列表视图
+        "render.groupList": (searchTerm = '') => {
+            const container = App.DOMElements.groupSectionsContainer;
+            container.innerHTML = '';
+            
+            // 过滤学生
+            let studentsToRender = App.state.students.filter(s => 
+                s.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            
+            if (studentsToRender.length === 0) {
+                container.innerHTML = '<p>没有找到符合条件的学生。</p>';
+                return;
+            }
+            
+            // 获取所有分组（包括"未分组"）
+            const allGroups = [...App.state.groups];
+            allGroups.push({ id: '', name: '未分组' });
+            
+            // 获取有学生的分组
+            const groupsWithStudents = allGroups.filter(group => {
+                return studentsToRender.some(s => s.group === group.id);
+            });
+            
+            if (groupsWithStudents.length === 0) {
+                container.innerHTML = '<p>没有找到符合条件的学生。</p>';
+                return;
+            }
+            
+            // 对分组进行排序（未分组放在最后）
+            groupsWithStudents.sort((a, b) => {
+                if (a.id === '') return 1;
+                if (b.id === '') return -1;
+                return a.name.localeCompare(b.name, 'zh-Hans-CN');
+            });
+            
+            // 为每个分组创建容器
+            groupsWithStudents.forEach(group => {
+                const groupStudents = studentsToRender
+                    .filter(s => s.group === group.id)
+                    .sort((a, b) => {
+                        const { column, direction } = App.state.dashboardSortState;
+                        let valA = a[column];
+                        let valB = b[column];
+                        let comparison = 0;
+                        if (column === 'points') {
+                            comparison = (valA || 0) - (valB || 0);
+                        } else {
+                            comparison = String(valA || '').localeCompare(String(valB || ''), 'zh-Hans-CN');
+                        }
+                        return direction === 'desc' ? comparison * -1 : comparison;
+                    });
+                
+                // 创建分组容器
+                const groupSection = document.createElement('div');
+                groupSection.className = 'group-section';
+                
+                // 计算小组统计信息
+                const groupTotalPoints = groupStudents.reduce((sum, s) => sum + (s.points || 0), 0);
+                const groupAvgPoints = groupStudents.length > 0 ? (groupTotalPoints / groupStudents.length).toFixed(1) : 0;
+                
+                // 创建小组标题
+                groupSection.innerHTML = `
+                    <div class="group-section-header ${group.id === '' ? 'unassigned' : ''}">
+                        <h3>
+                            <span class="group-badge">${group.name}</span>
+                            <span class="group-stats">${groupStudents.length}人 · 平均 ${groupAvgPoints} 分</span>
+                        </h3>
+                    </div>
+                    <div class="group-list-cards">
+                        ${groupStudents.map(s => {
+                            const achievement = App.helpers.getAchievement(s.totalEarnedPoints);
+                            const achievementHTML = achievement ? `<span class="achievement-title" data-tier="${achievement.title}">${achievement.title}</span>` : '';
+                            
+                            return `
+                                <div class="group-student-card ${achievement ? achievement.className : ''}" data-id="${s.id}">
+                                    <div class="group-card-top">
+                                        <div class="name-line">
+                                            <span class="name">${s.name}</span>
+                                            ${achievementHTML}
+                                        </div>
+                                        <div class="points">${s.points || 0}</div>
+                                    </div>
+
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                
+                container.appendChild(groupSection);
             });
         },
     };

@@ -75,10 +75,18 @@
   <main id="main-content">
     <div id="view-dashboard" class="active">
       <div class="page-header">
-        <h2>班级概览</h2>
+        <!-- <h2>班级概览</h2> -->
         <div class="header-actions">
 
           <div class="search-box"><span>🔍</span><input type="text" id="search-input" placeholder="搜索学生..."></div>
+          <div class="view-mode-toggle">
+            <button class="toggle-btn active" data-view-mode="grid" title="卡片网格视图">
+              <span>🃏</span> 卡片
+            </button>
+            <button class="toggle-btn" data-view-mode="group-list" title="分组列表视图">
+              <span>📋</span> 分组
+            </button>
+          </div>
           <div class="sort-controls">
             <button class="btn sort-btn" data-sort="points">积分 <span class="sort-indicator"></span></button>
             <button class="btn sort-btn" data-sort="name">姓名 <span class="sort-indicator"></span></button>
@@ -89,7 +97,8 @@
         </div>
       </div>
 
-      <div class="dashboard-layout">
+      <!-- 卡片网格视图 -->
+      <div class="dashboard-layout" id="grid-view" data-view-mode="grid">
         <div class="student-cards-grid-wrapper">
           <div class="student-cards-grid" id="student-cards-container">
           </div>
@@ -107,8 +116,25 @@
           <ol id="leaderboard-list">
           </ol>
         </div>
+      </div>
 
+      <!-- 分组列表视图 -->
+      <div class="group-list-view" id="group-list-view" data-view-mode="group-list">
+        <div class="group-sections-wrapper" id="group-sections-container">
+        </div>
 
+        <div class="leaderboard-container">
+          <div class="leaderboard-header">
+            <h3 id="leaderboard-title-list">🏆 积分排行榜</h3>
+          </div>
+          <div class="leaderboard-toggle" id="leaderboard-toggle-list">
+            <button class="toggle-btn active" data-type="realtime">实时</button>
+            <button class="toggle-btn" data-type="total">累计</button>
+            <button class="toggle-btn" data-type="deduction">扣分</button>
+          </div>
+          <ol id="leaderboard-list-list">
+          </ol>
+        </div>
       </div>
     </div>
 
