@@ -164,6 +164,7 @@
             <th class="sortable" data-sort="name">姓名 <span></span></th>
             <th>小组</th>
             <th class="sortable" data-sort="points">积分 <span></span></th>
+            <th>标签</th>
             <th>操作</th>
           </tr>
         </thead>
@@ -300,6 +301,9 @@
         <input type="text" id="student-name" required>
         <label for="student-group">小组:</label>
         <select id="student-group"></select>
+        <label for="student-tags">标签 (用逗号分隔，例如：班长,活泼,积极):</label>
+        <input type="text" id="student-tags" placeholder="例如：班长,活泼,积极">
+        <div id="student-tags-display" class="tags-display"></div>
         <div class="form-actions"><button type="submit" class="btn btn-primary">保存</button></div>
       </form>
     </div>

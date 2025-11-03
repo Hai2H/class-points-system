@@ -76,6 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             groupLeaderboardList: document.getElementById('group-leaderboard-list'),
             groupLeaderboardToggle: document.getElementById('group-leaderboard-toggle'),
+            studentTagsInput: document.getElementById('student-tags'),
+            studentTagsDisplay: document.getElementById('student-tags-display'),
         },
 
 
@@ -88,6 +90,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (totalEarnedPoints >= 100) return { title: '积分达人', className: 'tier-expert' };
                 if (totalEarnedPoints >= 50) return { title: '积分新秀', className: 'tier-rookie' };
                 return null; // 返回 null
+            },
+            renderTags(tags) {
+                if (!tags || !Array.isArray(tags) || tags.length === 0) return '';
+                // 显示所有标签，不隐藏
+                return tags.map(tag => `<span class="tag">${tag}</span>`).join('');
             }
         },
 
@@ -145,12 +152,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // action 只负责业务逻辑和数据修改，返回 {success, message}
         actions: {
             generateId: () => '_' + Math.random().toString(36).substr(2, 9),
-            addStudent(id, name, group) { // <-- 变化1：增加 id 参数
-                App.state.students.push({ id: id, name, group, points: 0, totalEarnedPoints: 0, totalDeductions: 0 }); // <-- 变化2：使用传入的 id
+            addStudent(id, name, group, tags = []) { // <-- 变化1：增加 id 参数
+                App.state.students.push({ id: id, name, group, points: 0, totalEarnedPoints: 0, totalDeductions: 0, tags: tags || [] }); // <-- 变化2：使用传入的 id
                 App.saveData();
                 return { success: true };
             },
-            updateStudent(originalId, newId, name, group) {
+            updateStudent(originalId, newId, name, group, tags = []) {
                 // 检查新的ID是否与系统中其他学生冲突
                 if (originalId !== newId && App.state.students.some(s => s.id === newId)) {
                     return { success: false, message: '错误：新的学生ID "' + newId + '" 已被占用！' };
@@ -162,6 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     student.id = newId;
                     student.name = name;
                     student.group = group;
+                    student.tags = tags || [];
 
                     // 关键一步：同步更新所有相关积分记录中的学生ID
                     App.state.records.forEach(r => {
@@ -427,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ... (render, saveData, loadData, import/export 函数保持不变)
         render() { App.render.stats(); App.render.dashboard(); App.render.leaderboard(); App.render.studentTable(); App.render.sortIndicators(); App.render.groupTable(); App.render.groupLeaderboard(); App.render.rewards(); App.render.records(); App.render.turntablePrizes(); App.render.dashboardSortIndicators(); },
         saveData() { localStorage.setItem('classPointsData', JSON.stringify(App.state)); },
-        loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; if (st.totalDeductions === undefined) st.totalDeductions = 0; /* <--- 新增此行 */ }); } if (l.groups) { l.groups.forEach(g => { if (g.leaderId === undefined) g.leaderId = ''; }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组', leaderId: '' }, { id: sG2, name: '第二小组', leaderId: '' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100, totalDeductions: 0 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80, totalDeductions: 0 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
+        loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; if (st.totalDeductions === undefined) st.totalDeductions = 0; if (st.tags === undefined) st.tags = []; }); } if (l.groups) { l.groups.forEach(g => { if (g.leaderId === undefined) g.leaderId = ''; }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组', leaderId: '' }, { id: sG2, name: '第二小组', leaderId: '' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100, totalDeductions: 0, tags: [] }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80, totalDeductions: 0, tags: [] }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
         //loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
         //exportData: () => { const d = JSON.stringify(App.state, null, 2); const b = new Blob([d], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `class_data_${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(u) },
 
@@ -454,7 +462,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     groupName: group ? group.name : '未分组', // 额外提供小组名称方便查看
                     points: s.points,
                     totalEarnedPoints: s.totalEarnedPoints || 0,
-                    totalDeductions: s.totalDeductions || 0
+                    totalDeductions: s.totalDeductions || 0,
+                    tags: (s.tags && Array.isArray(s.tags)) ? s.tags.join(', ') : ''
                 };
             });
 
@@ -496,6 +505,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 d.students.forEach(student => {
                                     if (student.totalEarnedPoints === undefined) {
                                         student.totalEarnedPoints = student.points > 0 ? student.points : 0;
+                                    }
+                                    if (student.tags === undefined) {
+                                        student.tags = [];
                                     }
                                 });
                             }
@@ -545,13 +557,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         excelData.forEach(row => {
                             // 只处理包含有效姓名的行
                             if (row.name && String(row.name).trim() !== '') {
+                                const tagsInput = row.tags ? String(row.tags).trim() : '';
+                                const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
                                 newStudents.push({
                                     id: String(row.id || App.actions.generateId()),
                                     name: String(row.name).trim(),
                                     group: String(row.group || ''),
                                     points: parseInt(row.points || 0),
                                     totalEarnedPoints: parseInt(row.totalEarnedPoints || row.points || 0),
-                                    totalDeductions: parseInt(row.totalDeductions || 0)
+                                    totalDeductions: parseInt(row.totalDeductions || 0),
+                                    tags: tags
                                 });
                             }
 
@@ -672,6 +687,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             App.DOMElements.groupLeaderboardToggle.addEventListener('click', e => App.handlers.handleGroupLeaderboardToggle(e));
 
+            // 标签输入框实时预览
+            if (App.DOMElements.studentTagsInput) {
+                App.DOMElements.studentTagsInput.addEventListener('input', (e) => {
+                    const tagsInput = e.target.value.trim();
+                    const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
+                    App.render.studentTagsDisplay(tags);
+                });
+            }
 
             App.DOMElements.turntablePrizeTableBody.addEventListener('click', e => App.handlers.handleTurntablePrizeTableClick(e));
 
@@ -874,6 +897,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const newStudentId = App.DOMElements.studentIdDisplayInput.value.trim(); // 这是用户可能修改过的、新的ID
                 const name = App.DOMElements.studentNameInput.value.trim();
                 const group = App.DOMElements.studentGroupSelect.value;
+                // 解析标签：按逗号分隔，去除空白，过滤空字符串
+                const tagsInput = App.DOMElements.studentTagsInput.value.trim();
+                const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
 
                 if (!newStudentId || !name) {
                     App.ui.showNotification('请输入学生ID和姓名！', 'error');
@@ -883,13 +909,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 let result;
                 if (internalId) { // 这是编辑模式
                     // 调用我们更新过的 updateStudent Action
-                    result = App.actions.updateStudent(internalId, newStudentId, name, group);
+                    result = App.actions.updateStudent(internalId, newStudentId, name, group, tags);
                 } else { // 这是新增模式 (逻辑不变)
                     if (App.state.students.some(s => s.id === newStudentId)) {
                         App.ui.showNotification('错误：学生ID ' + newStudentId + ' 已存在！', 'error');
                         return;
                     }
-                    result = App.actions.addStudent(newStudentId, name, group);
+                    result = App.actions.addStudent(newStudentId, name, group, tags);
                 }
 
                 if (result.success) {
@@ -954,10 +980,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     //idDisplayInput.readOnly = true; // <--- 新增 (编辑时ID只读)
                     App.DOMElements.studentNameInput.value = t.name;
                     s.value = t.group;
+                    // 设置标签
+                    const tags = (t.tags && Array.isArray(t.tags)) ? t.tags.join(', ') : '';
+                    App.DOMElements.studentTagsInput.value = tags;
+                    App.render.studentTagsDisplay(tags.split(', ').filter(t => t.trim()));
                     App.DOMElements.studentModalTitle.innerText = '编辑学生'
                 } else {
                     idDisplayInput.value = ''; // <--- 新增
                     idDisplayInput.readOnly = false; // <--- 新增 (新增时ID可写)
+                    App.DOMElements.studentTagsInput.value = '';
+                    App.DOMElements.studentTagsDisplay.innerHTML = '';
                     App.DOMElements.studentModalTitle.innerText = '新增学生'
                 }
                 App.ui.openModal(App.DOMElements.studentModal);
@@ -1375,12 +1407,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     const titleHTML = achievement ? `<span class="achievement-title" data-tier="${achievement.title}">${achievement.title}</span>` : '';
                     const isLeader = group && group.leaderId === s.id;
                     const leaderBadge = isLeader ? '<span style="color: #f1c40f; font-size: 0.9em;" title="组长">👑</span>' : '';
+                    const tagsHTML = App.helpers.renderTags(s.tags);
                     card.innerHTML = `
                 <div class="card-header">
                     <div class="name-line">
                         <span class="name">${s.name} ${leaderBadge}</span>
                         ${titleHTML} 
                     </div>
+                    ${tagsHTML ? `<div class="card-tags">${tagsHTML}</div>` : ''}
                 </div>
                 <div class="card-body">
                     <div class="points">${s.points}</div>
@@ -1423,12 +1457,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     card.dataset.id = s.id;
                     const titleHTML = achievement ? `<span class="achievement-title" data-tier="${achievement.title}">${achievement.title}</span>` : '';
+                    const tagsHTML = App.helpers.renderTags(s.tags);
                     card.innerHTML = `
                 <div class="card-header">
                     <div class="name-line">
                         <span class="name">${s.name}</span>
                         ${titleHTML} 
                     </div>
+                    ${tagsHTML ? `<div class="card-tags">${tagsHTML}</div>` : ''}
                 </div>
                 <div class="card-body">
                     <div class="points">${s.points}</div>
@@ -1448,6 +1484,20 @@ document.addEventListener('DOMContentLoaded', () => {
         },
 
 
+        "render.studentTagsDisplay": (tagsArray) => {
+            const displayEl = App.DOMElements.studentTagsDisplay;
+            if (!displayEl) return;
+            displayEl.innerHTML = '';
+            if (!tagsArray || tagsArray.length === 0) return;
+            tagsArray.forEach(tag => {
+                if (tag.trim()) {
+                    const span = document.createElement('span');
+                    span.className = 'tag';
+                    span.textContent = tag.trim();
+                    displayEl.appendChild(span);
+                }
+            });
+        },
         "render.bulkGroupEditor": (groupId) => {
             const unassignedList = App.DOMElements.unassignedStudentsList;
             const assignedList = App.DOMElements.assignedStudentsList;
@@ -1557,10 +1607,11 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             sS.forEach(s => {
                 const g = App.state.groups.find(g => g.id === s.group)?.name || '未分组';
+                const tagsHTML = App.helpers.renderTags(s.tags);
                 const tr = document.createElement('tr');
                 tr.dataset.id = s.id;
                 // 注意下面这行 innerHTML 的修改
-                tr.innerHTML = `<td>${s.id}</td><td>${s.name}</td><td>${g}</td><td>${s.points}</td><td class="actions"><button class="btn btn-info btn-sm record-btn">记录</button><button class="btn btn-primary btn-sm edit-btn">编辑</button><button class="btn btn-danger btn-sm delete-btn">删除</button></td>`;
+                tr.innerHTML = `<td>${s.id}</td><td>${s.name}</td><td>${g}</td><td>${s.points}</td><td>${tagsHTML || '<span style="color: #999;">无标签</span>'}</td><td class="actions"><button class="btn btn-info btn-sm record-btn">记录</button><button class="btn btn-primary btn-sm edit-btn">编辑</button><button class="btn btn-danger btn-sm delete-btn">删除</button></td>`;
                 b.appendChild(tr);
             });
         },

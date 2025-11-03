@@ -118,29 +118,39 @@ nav li.active {
 }
 
 /* --- 学生卡片 --- */
-.student-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.student-cards-grid { 
+  display: flex; 
+  flex-wrap: wrap;
+  gap: 6px; 
+}
 .student-card {
   background: var(--card-background);
-  border-radius: 8px;
+  border-radius: 6px;
   box-shadow: var(--shadow-sm);
-  padding: 8px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   border: 1px solid var(--border-color);
   position: relative;
+  min-height: 130px;
+  width: 95px;
+  flex-shrink: 0;
+  justify-content: space-between;
 }
 .student-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 
 /* --- 小组分区展示 --- */
 .group-section {
-  margin-bottom: 15px;
   padding: 10px;
   background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
   border-radius: 10px;
   border: 1px solid var(--border-color);
   box-shadow: var(--shadow-sm);
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .group-header {
@@ -171,32 +181,41 @@ nav li.active {
   display: flex; 
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   text-align: center;
+  min-height: 50px;
+  justify-content: flex-start;
 }
 .card-header .name { 
-  font-size: 0.9em; 
+  font-size: 0.85em; 
   font-weight: bold; 
   color: var(--primary-color);
   line-height: 1.2;
 }
 .card-header .group { 
-  font-size: 0.65em; 
+  font-size: 0.6em; 
   background: #eef2f7; 
   color: var(--primary-dark); 
-  padding: 2px 6px; 
-  border-radius: 8px; 
+  padding: 2px 5px; 
+  border-radius: 6px; 
   font-weight: 500;
   white-space: nowrap;
 }
-.card-body { text-align: center; }
+.card-body { 
+  text-align: center; 
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+}
 .card-body .label { 
-  font-size: 0.7em; 
+  font-size: 0.65em; 
   color: var(--sub-font-color);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 .card-body .points { 
-  font-size: 1.6em; 
+  font-size: 1.4em; 
   font-weight: bold; 
   color: var(--font-color); 
   line-height: 1; 
@@ -206,8 +225,8 @@ nav li.active {
   justify-content: center;
   align-items: center; 
   margin-top: auto; 
-  padding-top: 6px; 
-  gap: 4px;
+  padding-top: 4px; 
+  gap: 3px;
   flex-wrap: wrap;
 }
 
@@ -222,15 +241,17 @@ nav li.active {
 /* 统一的 .icon-btn 基础样式 */
 .icon-btn {
   cursor: pointer;
-  font-size: 0.75em;
-  padding: 3px 5px;
-  border-radius: 4px;
+  font-size: 0.7em;
+  padding: 2px 4px;
+  border-radius: 3px;
   color: white; /* 默认文字/图标颜色为白色 */
   transition: background-color 0.2s ease, transform 0.1s ease;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  min-width: 20px;
+  min-height: 20px;
 }
 
 .icon-btn.record-btn {
@@ -398,7 +419,16 @@ form input:focus, form select:focus {
   gap: 25px;
   align-items: start;
 }
-.student-cards-grid-wrapper { min-width: 0; }
+.student-cards-grid-wrapper { 
+  min-width: 0;
+}
+
+#student-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 15px;
+  align-items: start;
+}
 
 /* --- 排行榜样式  --- */
 .leaderboard-container {
@@ -840,7 +870,7 @@ form input:focus, form select:focus {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px; /* 名字和头衔之间的间距 */
+  gap: 1px; /* 名字和头衔之间的间距 */
 }
 
 .achievement-title {
@@ -1072,4 +1102,62 @@ form input:focus, form select:focus {
   max-height: 60vh; /* 设定最大高度为视窗高度的60%，可以根据喜好调整 */
   overflow-y: auto; /* 核心：当内容超出最大高度时，自动显示垂直滚动条 */
   margin-top: 15px; /* 与标题保持一些间距 */
+}
+
+/* --- 标签样式 --- */
+.tag {
+  display: inline-block;
+  background-color: #e3f2fd;
+  color: #1976d2;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 0.65em;
+  font-weight: 500;
+  margin: 1px 2px 1px 0;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.card-tags {
+  margin-top: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  justify-content: center;
+  align-items: flex-start;
+  line-height: 1.1;
+  min-height: 44px;
+  max-height: 44px;
+  overflow-y: auto;
+  width: 100%;
+  flex-shrink: 0;
+}
+
+/* 为没有标签时也预留相同高度的空间 */
+.card-header .name-line::after {
+  content: '';
+  display: block;
+  min-height: 44px;
+  margin-top: 3px;
+}
+
+.card-header:has(.card-tags) .name-line::after {
+  display: none;
+}
+
+.tags-display {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  margin-bottom: 15px;
+  min-height: 30px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.tags-display .tag {
+  margin: 0;
 }
