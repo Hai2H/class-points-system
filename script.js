@@ -1285,40 +1285,123 @@ document.addEventListener('DOMContentLoaded', () => {
                 return direction === 'desc' ? comparison * -1 : comparison;
             });
 
-            // 3. 渲染排序后的卡片
+            // 3. 按小组分组学生
+            const groupedStudents = {};
+            const ungroupedStudents = [];
+            
             studentsToRender.forEach(s => {
-                const card = document.createElement('div');
-                const achievement = App.helpers.getAchievement(s.totalEarnedPoints);
-                card.className = `student-card ${achievement ? achievement.className : ''}`;
-                if (s.justLeveledUp) {
-                    card.classList.add('level-up-fx');
-                    delete s.justLeveledUp;
+                if (s.group) {
+                    if (!groupedStudents[s.group]) {
+                        groupedStudents[s.group] = [];
+                    }
+                    groupedStudents[s.group].push(s);
+                } else {
+                    ungroupedStudents.push(s);
                 }
-                card.dataset.id = s.id;
-                const g = App.state.groups.find(g => g.id === s.group)?.name || '未分组';
-                const titleHTML = achievement ? `<span class="achievement-title" data-tier="${achievement.title}">${achievement.title}</span>` : '';
-                card.innerHTML = `
-            <div class="card-header">
-                <div class="name-line">
-                    <span class="name">${s.name}</span>
-                    ${titleHTML} 
+            });
+
+            // 4. 渲染每个小组及其学生
+            App.state.groups.forEach(group => {
+                const groupStudents = groupedStudents[group.id];
+                if (!groupStudents || groupStudents.length === 0) return;
+
+                // 创建小组容器
+                const groupSection = document.createElement('div');
+                groupSection.className = 'group-section';
+                
+                // 小组标题
+                const groupHeader = document.createElement('div');
+                groupHeader.className = 'group-header';
+                groupHeader.innerHTML = `
+                    <h3>${group.name}</h3>
+                    <span class="group-member-count">${groupStudents.length} 名成员</span>
+                `;
+                groupSection.appendChild(groupHeader);
+
+                // 学生卡片容器
+                const groupCardsGrid = document.createElement('div');
+                groupCardsGrid.className = 'student-cards-grid';
+                
+                groupStudents.forEach(s => {
+                    const card = document.createElement('div');
+                    const achievement = App.helpers.getAchievement(s.totalEarnedPoints);
+                    card.className = `student-card ${achievement ? achievement.className : ''}`;
+                    if (s.justLeveledUp) {
+                        card.classList.add('level-up-fx');
+                        delete s.justLeveledUp;
+                    }
+                    card.dataset.id = s.id;
+                    const titleHTML = achievement ? `<span class="achievement-title" data-tier="${achievement.title}">${achievement.title}</span>` : '';
+                    card.innerHTML = `
+                <div class="card-header">
+                    <div class="name-line">
+                        <span class="name">${s.name}</span>
+                        ${titleHTML} 
+                    </div>
                 </div>
-                <span class="group">${g}</span>
-            </div>
-            <div class="card-body">
-                <div class="label">当前积分</div>
-                <div class="points">${s.points}</div>
-            </div>
-            <div class="card-actions">
-                <span class="icon-btn points-btn" title="调整积分">➕➖</span>
-                <div class="card-admin-icons">
+                <div class="card-body">
+                    <div class="points">${s.points}</div>
+                </div>
+                <div class="card-actions">
+                    <span class="icon-btn points-btn" title="调整积分">➕</span>
+                    <span class="icon-btn record-btn" title="查看记录">📄</span>
+                    <span class="icon-btn edit-btn" title="编辑学生">✏️</span>
+                </div>`;
+                    groupCardsGrid.appendChild(card);
+                });
+                
+                groupSection.appendChild(groupCardsGrid);
+                c.appendChild(groupSection);
+            });
+
+            // 5. 渲染未分组的学生
+            if (ungroupedStudents.length > 0) {
+                const ungroupedSection = document.createElement('div');
+                ungroupedSection.className = 'group-section';
+                
+                const ungroupedHeader = document.createElement('div');
+                ungroupedHeader.className = 'group-header';
+                ungroupedHeader.innerHTML = `
+                    <h3>未分组</h3>
+                    <span class="group-member-count">${ungroupedStudents.length} 名成员</span>
+                `;
+                ungroupedSection.appendChild(ungroupedHeader);
+
+                const ungroupedCardsGrid = document.createElement('div');
+                ungroupedCardsGrid.className = 'student-cards-grid';
+                
+                ungroupedStudents.forEach(s => {
+                    const card = document.createElement('div');
+                    const achievement = App.helpers.getAchievement(s.totalEarnedPoints);
+                    card.className = `student-card ${achievement ? achievement.className : ''}`;
+                    if (s.justLeveledUp) {
+                        card.classList.add('level-up-fx');
+                        delete s.justLeveledUp;
+                    }
+                    card.dataset.id = s.id;
+                    const titleHTML = achievement ? `<span class="achievement-title" data-tier="${achievement.title}">${achievement.title}</span>` : '';
+                    card.innerHTML = `
+                <div class="card-header">
+                    <div class="name-line">
+                        <span class="name">${s.name}</span>
+                        ${titleHTML} 
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="points">${s.points}</div>
+                </div>
+                <div class="card-actions">
+                    <span class="icon-btn points-btn" title="调整积分">➕</span>
                     <span class="icon-btn record-btn" title="查看记录">📄</span>
                     <span class="icon-btn edit-btn" title="编辑学生">✏️</span>
                     <span class="icon-btn delete-btn" title="删除学生">🗑️</span>
-                </div>
-            </div>`;
-                c.appendChild(card);
-            });
+                </div>`;
+                    ungroupedCardsGrid.appendChild(card);
+                });
+                
+                ungroupedSection.appendChild(ungroupedCardsGrid);
+                c.appendChild(ungroupedSection);
+            }
         },
 
 

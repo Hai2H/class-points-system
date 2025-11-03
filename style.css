@@ -52,7 +52,7 @@ nav {
 
 main {
   grid-area: main;
-  padding: 25px 30px;
+  padding: 15px 20px;
   overflow-y: auto;
 }
 
@@ -104,9 +104,9 @@ nav li.active {
 
 .page-header {
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid var(--border-color);
+  margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);
 }
-.page-header h2 { margin: 0; font-size: 2em; }
+.page-header h2 { margin: 0; font-size: 1.6em; }
 .search-box { display: flex; align-items: center; background: var(--card-background); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
 .search-box span { margin-right: 8px; color: var(--sub-font-color); }
 .search-box input { border: none; outline: none; padding: 8px 5px; background: transparent; width: 220px; font-size: 1em; }
@@ -118,30 +118,103 @@ nav li.active {
 }
 
 /* --- 学生卡片 --- */
-.student-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+.student-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
 .student-card {
   background: var(--card-background);
-  border-radius: 12px;
-  box-shadow: var(--shadow-md);
-  padding: 20px;
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  padding: 8px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  gap: 6px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
   border: 1px solid var(--border-color);
+  position: relative;
 }
-.student-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); }
-.card-header { display: flex; justify-content: space-between; align-items: center; }
-.card-header .name { font-size: 1.3em; font-weight: bold; color: var(--primary-color); }
-.card-header .group { font-size: 0.8em; background: #eef2f7; color: var(--primary-dark); padding: 5px 12px; border-radius: 15px; font-weight: 500; }
-.card-body .label { font-size: 0.85em; color: var(--sub-font-color); }
-.card-body .points { font-size: 3em; font-weight: bold; color: var(--font-color); line-height: 1; }
-.card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 15px; border-top: 1px solid var(--border-color);}
+.student-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+/* --- 小组分区展示 --- */
+.group-section {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 2px solid var(--primary-color);
+}
+
+.group-header h3 {
+  margin: 0;
+  font-size: 1em;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+.group-member-count {
+  background: var(--primary-color);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75em;
+  font-weight: 500;
+}
+.card-header { 
+  display: flex; 
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+}
+.card-header .name { 
+  font-size: 0.9em; 
+  font-weight: bold; 
+  color: var(--primary-color);
+  line-height: 1.2;
+}
+.card-header .group { 
+  font-size: 0.65em; 
+  background: #eef2f7; 
+  color: var(--primary-dark); 
+  padding: 2px 6px; 
+  border-radius: 8px; 
+  font-weight: 500;
+  white-space: nowrap;
+}
+.card-body { text-align: center; }
+.card-body .label { 
+  font-size: 0.7em; 
+  color: var(--sub-font-color);
+  margin-bottom: 2px;
+}
+.card-body .points { 
+  font-size: 1.6em; 
+  font-weight: bold; 
+  color: var(--font-color); 
+  line-height: 1; 
+}
+.card-actions { 
+  display: flex; 
+  justify-content: center;
+  align-items: center; 
+  margin-top: auto; 
+  padding-top: 6px; 
+  gap: 4px;
+  flex-wrap: wrap;
+}
 
 .card-admin-icons {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 3px;
 }
 
 /* ===== MODIFICATION START: Unified Icon Button Styling ===== */
@@ -149,9 +222,9 @@ nav li.active {
 /* 统一的 .icon-btn 基础样式 */
 .icon-btn {
   cursor: pointer;
-  font-size: 1.1em;
-  padding: 6px 10px;
-  border-radius: 8px;
+  font-size: 0.75em;
+  padding: 3px 5px;
+  border-radius: 4px;
   color: white; /* 默认文字/图标颜色为白色 */
   transition: background-color 0.2s ease, transform 0.1s ease;
   display: flex;
@@ -195,7 +268,7 @@ nav li.active {
   background-color: transparent;
   box-shadow: none;
   color: var(--red);
-  font-size: 1.4em; /* 恢复稍大一点的字体，因为它没有背景 */
+  font-size: 0.9em; /* 恢复稍大一点的字体，因为它没有背景 */
   padding: 2px; /* 减少padding */
 }
 .icon-btn.delete-btn:hover {
@@ -330,19 +403,22 @@ form input:focus, form select:focus {
 /* --- 排行榜样式  --- */
 .leaderboard-container {
   background: var(--card-background);
-  border-radius: 12px;
-  padding: 20px 25px;
+  border-radius: 10px;
+  padding: 12px 15px;
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-color);
+  max-height: calc(100vh - 130px);
+  display: flex;
+  flex-direction: column;
 }
 
 .leaderboard-container h3 {
   margin-top: 0;
-  margin-bottom: 20px;
-  font-size: 1.4em;
+  margin-bottom: 12px;
+  font-size: 1.1em;
   text-align: center;
   border-bottom: 1px solid var(--border-color);
-  padding-bottom: 15px;
+  padding-bottom: 10px;
 }
 
 /* --- 修改点: 同时选中两个排行榜的 ol 元素 --- */
@@ -351,6 +427,9 @@ form input:focus, form select:focus {
   list-style: none;
   padding: 0;
   margin: 0;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 /* --- 修改点: 同时选中两个排行榜的 li 元素 --- */
@@ -358,10 +437,10 @@ form input:focus, form select:focus {
 #group-leaderboard-list li {
   display: flex;
   align-items: center;
-  gap: 15px; /* 设置列之间的统一间距 */
-  padding: 12px 0;
+  gap: 10px; /* 设置列之间的统一间距 */
+  padding: 8px 0;
   border-bottom: 1px solid #f1f3f5;
-  font-size: 1.05em;
+  font-size: 0.9em;
 }
 
 /* --- 修改点: 同时选中两个排行榜的最后一个 li 元素 --- */
@@ -375,9 +454,9 @@ form input:focus, form select:focus {
 #group-leaderboard-list .rank {
   flex-shrink: 0; /* 防止被压缩 */
   font-weight: bold;
-  font-size: 1.1em;
+  font-size: 0.95em;
   color: var(--sub-font-color);
-  width: 30px; /* 固定宽度 */
+  width: 25px; /* 固定宽度 */
   text-align: right;
 }
 
@@ -389,6 +468,7 @@ form input:focus, form select:focus {
   white-space: nowrap; /* 防止名字换行 */
   overflow: hidden; /* 超出部分隐藏 */
   text-overflow: ellipsis; /* 超出部分显示... */
+  font-size: 0.95em;
 }
 
 /* --- 修改点: 同时选中两个排行榜的 .points 元素 --- */
@@ -397,6 +477,7 @@ form input:focus, form select:focus {
   flex-shrink: 0; /* 防止被压缩 */
   font-weight: bold;
   color: var(--primary-color);
+  font-size: 0.95em;
 }
 
 /* --- 修改点: 同时为两个排行榜的前三名 .rank 添加特殊颜色 --- */
@@ -452,14 +533,14 @@ form input:focus, form select:focus {
 .leaderboard-header {
   /* 移除 flex 布局相关属性 */
   text-align: center; /* 让标题文本居中 */
-  margin-bottom: 15px; /* 调整与下方按钮的间距 */
-  padding-bottom: 20px;
-  border-bottom: 1px solid #e9ecef; 
+  margin-bottom: 0; /* 调整与下方按钮的间距 */
+  padding-bottom: 0;
+  flex-shrink: 0;
 }
 
 .leaderboard-header h3 {
   margin: 0;
-  font-size: 1.4em;
+  font-size: 1.1em;
   /* 移除了 text-align, border-bottom, padding-bottom，因为它们现在由父容器处理 */
 }
 
@@ -468,20 +549,21 @@ form input:focus, form select:focus {
   display: flex;
   justify-content: center; /* 让按钮组在容器内居中 */
   background-color: #f1f3f5;
-  border-radius: 9px;
-  padding: 5px;
+  border-radius: 7px;
+  padding: 3px;
   border: 1px solid var(--border-color);
   width: fit-content; /* 宽度自适应内容 */
-  margin: 0 auto 20px auto; /* 关键：上下边距20px，左右自动居中 */
+  margin: 0 auto 12px auto; /* 关键：上下边距，左右自动居中 */
+  flex-shrink: 0;
 }
 
 .toggle-btn {
   border: none;
   background-color: transparent;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 4px 8px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 0.9em;
+  font-size: 0.75em;
   font-weight: 500;
   color: var(--sub-font-color);
   transition: all 0.2s ease;
@@ -756,19 +838,19 @@ form input:focus, form select:focus {
 /* --- 成就系统样式 --- */
 .name-line {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px; /* 名字和头衔之间的间距 */
-  flex-wrap: wrap; /* 如果空间不足，允许换行 */
+  gap: 2px; /* 名字和头衔之间的间距 */
 }
 
 .achievement-title {
-  padding: 3px 10px;
-  border-radius: 12px; /* 圆角胶囊形状 */
-  font-size: 0.8em; /* 字体小一点 */
+  padding: 1px 4px;
+  border-radius: 6px; /* 圆角胶囊形状 */
+  font-size: 0.6em; /* 字体小一点 */
   font-weight: 600; /* 字体加粗 */
   color: #fff; /* 文字统一为白色 */
   text-shadow: 0 1px 2px rgba(0,0,0,0.2); /* 文字轻微阴影，增加质感 */
-  box-shadow: inset 0 -2px 1px rgba(0,0,0,0.15); /* 内部阴影，增加立体感 */
+  box-shadow: inset 0 -1px 1px rgba(0,0,0,0.15); /* 内部阴影，增加立体感 */
 }
 
 /* --- 不同等级头衔的专属颜色 --- */
@@ -980,7 +1062,7 @@ form input:focus, form select:focus {
 .group-management-layout {
   display: grid;
   grid-template-columns: 2fr 1fr; /* 表格占2/3，排行榜占1/3 */
-  gap: 30px;
+  gap: 25px;
   align-items: start;
 }
 
