@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bulkGroupIdInput: document.getElementById('bulk-group-id'),
             unassignedStudentsList: document.getElementById('unassigned-students-list'),
             assignedStudentsList: document.getElementById('assigned-students-list'),
+            groupLeaderSelect: document.getElementById('group-leader-select'),
 
             dashboardSortControls: document.querySelector('.sort-controls'),
 
@@ -180,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return { success: true };
             },
             addGroup(name) {
-                App.state.groups.push({ id: App.actions.generateId(), name });
+                App.state.groups.push({ id: App.actions.generateId(), name, leaderId: '' });
                 App.saveData();
                 return { success: true };
             },
@@ -245,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return { success: true };
             },
 
-            bulkUpdateGroupMembers(groupId, newMemberIds) {
+            bulkUpdateGroupMembers(groupId, newMemberIds, leaderId = null) {
                 // 1. 将该小组所有现有成员的小组ID清空
                 App.state.students.forEach(student => {
                     if (student.group === groupId) {
@@ -260,6 +261,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         student.group = groupId;
                     }
                 });
+
+                // 3. 更新组长
+                const group = App.state.groups.find(g => g.id === groupId);
+                if (group) {
+                    // 如果设置了组长，且该学生在新的成员列表中，则设置组长
+                    if (leaderId && newMemberIds.includes(leaderId)) {
+                        group.leaderId = leaderId;
+                    } else if (leaderId === '' || (leaderId && !newMemberIds.includes(leaderId))) {
+                        // 如果组长不在新成员列表中，清空组长
+                        group.leaderId = '';
+                    }
+                }
 
                 App.saveData();
                 return { success: true };
@@ -414,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ... (render, saveData, loadData, import/export 函数保持不变)
         render() { App.render.stats(); App.render.dashboard(); App.render.leaderboard(); App.render.studentTable(); App.render.sortIndicators(); App.render.groupTable(); App.render.groupLeaderboard(); App.render.rewards(); App.render.records(); App.render.turntablePrizes(); App.render.dashboardSortIndicators(); },
         saveData() { localStorage.setItem('classPointsData', JSON.stringify(App.state)); },
-        loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; if (st.totalDeductions === undefined) st.totalDeductions = 0; /* <--- 新增此行 */ }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100, totalDeductions: 0 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80, totalDeductions: 0 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
+        loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; if (st.totalDeductions === undefined) st.totalDeductions = 0; /* <--- 新增此行 */ }); } if (l.groups) { l.groups.forEach(g => { if (g.leaderId === undefined) g.leaderId = ''; }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组', leaderId: '' }, { id: sG2, name: '第二小组', leaderId: '' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100, totalDeductions: 0 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80, totalDeductions: 0 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
         //loadData() { const d = localStorage.getItem('classPointsData'); const s = { students: [], groups: [], rewards: [], records: [], sortState: { column: 'id', direction: 'asc' }, leaderboardType: 'realtime', turntablePrizes: [], turntableCost: 10 }; if (d) { const l = JSON.parse(d); if (l.students) { l.students.forEach(st => { if (st.totalEarnedPoints === undefined) st.totalEarnedPoints = st.points > 0 ? st.points : 0; }); } App.state = { ...s, ...l }; } else { let sG1 = App.actions.generateId(); let sG2 = App.actions.generateId(); App.state.groups = [{ id: sG1, name: '第一小组' }, { id: sG2, name: '第二小组' }]; App.state.students = [{ id: 'S01', name: '张三', group: sG1, points: 100, totalEarnedPoints: 100 }, { id: 'S02', name: '李四', group: sG2, points: 80, totalEarnedPoints: 80 }]; App.state.rewards = [{ id: App.actions.generateId(), name: '免作业一次', cost: 50 }, { id: App.actions.generateId(), name: '小零食', cost: 20 }]; App.saveData(); } },
         //exportData: () => { const d = JSON.stringify(App.state, null, 2); const b = new Blob([d], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `class_data_${new Date().toISOString().slice(0, 10)}.json`; a.click(); URL.revokeObjectURL(u) },
 
@@ -486,6 +499,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                     }
                                 });
                             }
+                            if (d.groups) {
+                                d.groups.forEach(group => {
+                                    if (group.leaderId === undefined) {
+                                        group.leaderId = '';
+                                    }
+                                });
+                            }
                             App.state = { ...ds, ...d };
                             s = true;
                         }
@@ -545,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         // 2. 将Map转换回小组数组格式
                         const newGroups = [];
                         groupsMap.forEach((name, id) => {
-                            newGroups.push({ id, name });
+                            newGroups.push({ id, name, leaderId: '' });
                         });
 
                         // 3. 同时更新学生和小组列表
@@ -808,6 +828,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // 从原列表中移除
                 e.target.remove();
+                
+                // 如果移动到小组成员列表，更新组长选择下拉框
+                if (type === 'unassigned') {
+                    const leaderSelect = App.DOMElements.groupLeaderSelect;
+                    const option = document.createElement('option');
+                    option.value = studentId;
+                    option.textContent = studentName;
+                    leaderSelect.appendChild(option);
+                } else {
+                    // 如果从小组成员列表移除，从组长选择下拉框中移除
+                    const leaderSelect = App.DOMElements.groupLeaderSelect;
+                    const optionToRemove = leaderSelect.querySelector(`option[value="${studentId}"]`);
+                    if (optionToRemove) {
+                        optionToRemove.remove();
+                        // 如果移除的是当前组长，清空组长选择
+                        if (leaderSelect.value === studentId) {
+                            leaderSelect.value = '';
+                        }
+                    }
+                }
             },
 
             handleBulkGroupFormSubmit(e) {
@@ -816,8 +856,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const assignedListItems = App.DOMElements.assignedStudentsList.querySelectorAll('li');
 
                 const newMemberIds = Array.from(assignedListItems).map(li => li.dataset.id);
+                const leaderId = App.DOMElements.groupLeaderSelect.value || '';
 
-                const result = App.actions.bulkUpdateGroupMembers(groupId, newMemberIds);
+                const result = App.actions.bulkUpdateGroupMembers(groupId, newMemberIds, leaderId);
 
                 if (result.success) {
                     App.ui.showNotification('小组成员已成功更新！');
@@ -1332,10 +1373,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                     card.dataset.id = s.id;
                     const titleHTML = achievement ? `<span class="achievement-title" data-tier="${achievement.title}">${achievement.title}</span>` : '';
+                    const isLeader = group && group.leaderId === s.id;
+                    const leaderBadge = isLeader ? '<span style="color: #f1c40f; font-size: 0.9em;" title="组长">👑</span>' : '';
                     card.innerHTML = `
                 <div class="card-header">
                     <div class="name-line">
-                        <span class="name">${s.name}</span>
+                        <span class="name">${s.name} ${leaderBadge}</span>
                         ${titleHTML} 
                     </div>
                 </div>
@@ -1408,11 +1451,15 @@ document.addEventListener('DOMContentLoaded', () => {
         "render.bulkGroupEditor": (groupId) => {
             const unassignedList = App.DOMElements.unassignedStudentsList;
             const assignedList = App.DOMElements.assignedStudentsList;
+            const leaderSelect = App.DOMElements.groupLeaderSelect;
+            
             unassignedList.innerHTML = '';
             assignedList.innerHTML = '';
+            leaderSelect.innerHTML = '<option value="">-- 未设置组长 --</option>';
 
             const unassignedStudents = App.state.students.filter(s => !s.group || s.group === '');
             const assignedStudents = App.state.students.filter(s => s.group === groupId);
+            const group = App.state.groups.find(g => g.id === groupId);
 
             unassignedStudents.forEach(student => {
                 const li = document.createElement('li');
@@ -1426,6 +1473,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 li.dataset.id = student.id;
                 li.innerText = student.name;
                 assignedList.appendChild(li);
+                
+                // 添加组长选择选项
+                const option = document.createElement('option');
+                option.value = student.id;
+                option.textContent = student.name;
+                if (group && group.leaderId === student.id) {
+                    option.selected = true;
+                }
+                leaderSelect.appendChild(option);
             });
         },
         //"render.dashboard": (st = '') => { const c = App.DOMElements.studentCardsContainer; c.innerHTML = ''; const f = App.state.students.filter(s => s.name.toLowerCase().includes(st.toLowerCase())); if (f.length === 0) { c.innerHTML = '<p>没有找到符合条件的学生。</p>'; return; } f.forEach(s => { const card = document.createElement('div'); card.className = 'student-card'; card.dataset.id = s.id; const g = App.state.groups.find(g => g.id === s.group)?.name || '未分组'; card.innerHTML = `<div class="card-header"><span class="name">${s.name}</span><span class="group">${g}</span></div><div class="card-body"><div class="label">当前积分</div><div class="points">${s.points}</div></div><div class="card-actions"><span class="icon-btn points-btn" title="调整积分">➕➖</span><div class="card-admin-icons"><span class="icon-btn edit-btn" title="编辑学生">✏️</span><span class="icon-btn delete-btn" title="删除学生">🗑️</span></div></div>`; c.appendChild(card); }); },
@@ -1516,11 +1572,14 @@ document.addEventListener('DOMContentLoaded', () => {
             App.state.groups.forEach(g => {
                 const m = App.state.students.filter(s => s.group === g.id);
                 const a = m.length ? (m.reduce((s, st) => s + st.points, 0) / m.length).toFixed(1) : 0;
+                const leader = g.leaderId ? App.state.students.find(s => s.id === g.leaderId) : null;
+                const leaderName = leader ? `${leader.name} 👑` : '未设置';
                 const tr = document.createElement('tr');
                 tr.dataset.id = g.id;
                 // 注意下面这行 innerHTML 的修改，增加了 .btn-info
                 tr.innerHTML = `
             <td>${g.name}</td>
+            <td>${leaderName}</td>
             <td>${m.length}</td>
             <td>${a}</td>
             <td class="actions">
